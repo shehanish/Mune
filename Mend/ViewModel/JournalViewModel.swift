@@ -33,9 +33,13 @@ final class JournalViewModel {
     var healingDashboard: HealingDashboard = .empty
     var debugHistoryMessage: String = "Debug: journal history not loaded yet"
 
-    private var recorder: AVAudioRecorder?
+    private var audioEngine: AVAudioEngine?
+    private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
     private var recognitionTask: SFSpeechRecognitionTask?
-    private var recordingURL: URL?
+    private var latestTranscript: String = ""
+    private var didInstallInputTap = false
+    private var didStartWithEmptyJournal = false
+    private var recognitionFinishContinuation: CheckedContinuation<String, Never>?
 
     init(context: ModelContext, moodRepo: any MoodRepository, userID: String, userName: String) {
         self.context = context
@@ -136,7 +140,7 @@ final class JournalViewModel {
             gratitudeTwo = ""
             gratitudeThree = ""
             transcriptText = ""
-            recordingURL = nil
+            latestTranscript = ""
             statusMessage = "Journal saved for today."
             debugHistoryMessage = "Debug: save succeeded, journalEntries=\(historyEntries.count), timeline=\(timelineEntries.count)"
             print("[JournalViewModel] saveJournalEntry success journalEntries=\(historyEntries.count) timeline=\(timelineEntries.count)")
@@ -200,100 +204,174 @@ final class JournalViewModel {
             return
         }
 
-        do {
-            let session = AVAudioSession.sharedInstance()
-            try session.setCategory(.playAndRecord, mode: .spokenAudio, options: [.defaultToSpeaker, .allowBluetoothHFP])
-            try session.setActive(true)
-
-            let url = makeRecordingURL()
-            let recorder = try AVAudioRecorder(url: url, settings: recordingSettings())
-            recorder.record()
-
-            self.recorder = recorder
-            self.recordingURL = url
-            self.isRecording = true
-            self.statusMessage = "Recording started. Speak your journal entry."
-        } catch {
-            statusMessage = "Could not start recording."
-            isRecording = false
-        }
-    }
-
-    private func stopRecording() async {
-        guard isRecording else { return }
-
-        recorder?.stop()
-        recorder = nil
-        isRecording = false
-
-        guard let recordingURL else {
-            statusMessage = "Recording finished, but no audio file was found."
-            return
-        }
-
-        statusMessage = "Transcribing your recording..."
-        await transcribeAudio(at: recordingURL)
-    }
-
-    private func transcribeAudio(at url: URL) async {
-        isTranscribing = true
-        defer {
-            isTranscribing = false
-            recognitionTask = nil
-        }
-
         let speechAllowed = await requestSpeechPermission()
         guard speechAllowed else {
             statusMessage = "Speech recognition permission is needed to create a transcript."
             return
         }
 
-        guard let recognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US")) else {
-            statusMessage = "Transcript unavailable on this device."
-            return
-        }
-
-        guard recognizer.isAvailable else {
+        guard let recognizer = preferredSpeechRecognizer(), recognizer.isAvailable else {
             statusMessage = "Speech recognition is currently unavailable."
             return
         }
 
-        let request = SFSpeechURLRecognitionRequest(url: url)
-        request.shouldReportPartialResults = false
+        stopAudioEngine()
+        recognitionTask?.cancel()
+        recognitionTask = nil
+        latestTranscript = ""
+        transcriptText = ""
+        didStartWithEmptyJournal = journalText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
 
         do {
-            transcriptText = try await recognizeSpeech(recognizer: recognizer, request: request)
-            statusMessage = transcriptText.isEmpty ? "Recording saved, but no transcript was captured." : "Transcript ready."
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.record, mode: .measurement, options: [.duckOthers])
+            try session.setActive(true, options: .notifyOthersOnDeactivation)
+
+            let engine = AVAudioEngine()
+            let request = SFSpeechAudioBufferRecognitionRequest()
+            request.shouldReportPartialResults = true
+            request.taskHint = .dictation
+            request.addsPunctuation = true
+            request.contextualStrings = speechContextHints
+            request.requiresOnDeviceRecognition = false
+
+            let inputNode = engine.inputNode
+            let format = inputNode.outputFormat(forBus: 0)
+            guard format.sampleRate > 0, format.channelCount > 0 else {
+                statusMessage = "Microphone is not ready. Please try again."
+                return
+            }
+
+            inputNode.installTap(onBus: 0, bufferSize: 1024, format: format) { buffer, _ in
+                request.append(buffer)
+            }
+            didInstallInputTap = true
+
+            engine.prepare()
+            try engine.start()
+
+            audioEngine = engine
+            recognitionRequest = request
+            isRecording = true
+            statusMessage = "Listening… speak clearly and I’ll add the words to your journal."
+
+            recognitionTask = recognizer.recognitionTask(with: request) { [weak self] result, error in
+                Task { @MainActor in
+                    guard let self else { return }
+
+                    if let result {
+                        let text = result.bestTranscription.formattedString
+                        self.latestTranscript = text
+                        self.transcriptText = text
+                        if self.didStartWithEmptyJournal {
+                            self.journalText = text
+                        }
+                        if result.isFinal {
+                            self.finishRecognition(with: text)
+                        }
+                    }
+
+                    if error != nil {
+                        self.finishRecognition(with: self.latestTranscript)
+                    }
+                }
+            }
         } catch {
-            statusMessage = "Could not create a transcript from the recording."
+            stopAudioEngine()
+            isRecording = false
+            statusMessage = "Could not start recording."
         }
     }
 
-    private func recognizeSpeech(
-        recognizer: SFSpeechRecognizer,
-        request: SFSpeechURLRecognitionRequest
-    ) async throws -> String {
-        try await withCheckedThrowingContinuation { continuation in
-            var didResume = false
-            recognitionTask = recognizer.recognitionTask(with: request) { result, error in
-                if didResume {
-                    return
-                }
+    private func stopRecording() async {
+        guard isRecording else { return }
 
-                if let error {
-                    didResume = true
-                    continuation.resume(throwing: error)
-                    return
-                }
+        isRecording = false
+        isTranscribing = true
+        statusMessage = "Finishing transcript..."
 
-                guard let result else { return }
+        recognitionRequest?.endAudio()
+        stopAudioEngine()
 
-                if result.isFinal {
-                    didResume = true
-                    continuation.resume(returning: result.bestTranscription.formattedString)
-                }
+        let finalText = await withCheckedContinuation { continuation in
+            if recognitionFinishContinuation != nil {
+                continuation.resume(returning: latestTranscript)
+                return
+            }
+
+            recognitionFinishContinuation = continuation
+
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(2.5))
+                self.finishRecognition(with: self.latestTranscript)
             }
         }
+
+        recognitionTask?.cancel()
+        recognitionTask = nil
+        recognitionRequest = nil
+        isTranscribing = false
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+
+        let trimmedTranscript = finalText.trimmingCharacters(in: .whitespacesAndNewlines)
+        transcriptText = trimmedTranscript
+
+        if !trimmedTranscript.isEmpty {
+            if didStartWithEmptyJournal {
+                journalText = trimmedTranscript
+            } else {
+                appendTranscriptToJournal(trimmedTranscript)
+            }
+            statusMessage = "Transcript added to your journal. You can edit it before saving."
+        } else {
+            statusMessage = "Recording saved, but no transcript was captured."
+        }
+    }
+
+    private func finishRecognition(with text: String) {
+        guard let continuation = recognitionFinishContinuation else { return }
+        recognitionFinishContinuation = nil
+        continuation.resume(returning: text)
+    }
+
+    private func stopAudioEngine() {
+        if audioEngine?.isRunning == true {
+            audioEngine?.stop()
+        }
+
+        if didInstallInputTap {
+            audioEngine?.inputNode.removeTap(onBus: 0)
+            didInstallInputTap = false
+        }
+
+        audioEngine = nil
+    }
+
+    private func preferredSpeechRecognizer() -> SFSpeechRecognizer? {
+        var locales: [Locale] = []
+
+        if let preferredLanguage = Locale.preferredLanguages.first {
+            locales.append(Locale(identifier: preferredLanguage))
+        }
+
+        locales.append(.autoupdatingCurrent)
+        locales.append(Locale(identifier: "en-US"))
+
+        for locale in locales {
+            if let recognizer = SFSpeechRecognizer(locale: locale), recognizer.isAvailable {
+                return recognizer
+            }
+        }
+
+        return SFSpeechRecognizer()
+    }
+
+    private var speechContextHints: [String] {
+        [
+            "I feel", "today", "journal", "grateful", "healing",
+            "anxious", "sad", "tired", "lonely", "calm", "hopeful",
+            "overwhelmed", "okay", "angry", "empty"
+        ]
     }
 
     private func requestMicrophonePermission() async -> Bool {
@@ -312,18 +390,19 @@ final class JournalViewModel {
         }
     }
 
-    private func makeRecordingURL() -> URL {
-        let folder = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first ?? URL(fileURLWithPath: NSTemporaryDirectory())
-        return folder.appendingPathComponent("journal-\(UUID().uuidString)").appendingPathExtension("m4a")
-    }
+    private func appendTranscriptToJournal(_ transcript: String) {
+        let trimmedJournal = journalText.trimmingCharacters(in: .whitespacesAndNewlines)
 
-    private func recordingSettings() -> [String: Any] {
-        [
-            AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
-            AVSampleRateKey: 44_100,
-            AVNumberOfChannelsKey: 1,
-            AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
-        ]
+        if trimmedJournal.isEmpty {
+            journalText = transcript
+            return
+        }
+
+        if trimmedJournal.contains(transcript) {
+            return
+        }
+
+        journalText = trimmedJournal + "\n\n" + transcript
     }
 
     private func rebuildHealingDashboard() {

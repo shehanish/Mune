@@ -191,7 +191,7 @@ struct JournalView: View {
                 .font(.largeTitle.bold())
                 .foregroundStyle(Color.brandPrimary)
 
-            Text("Write it, say it, or both. Keep the transcript, capture the moment, and return to it later.")
+            Text("Write it, say it, or both. Spoken entries land in your journal so you can edit them before saving.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
@@ -207,7 +207,7 @@ struct JournalView: View {
                 .font(.headline)
                 .foregroundStyle(Color.brandPrimary)
 
-            Text(vm.isRecording ? "Recording in progress..." : "Record a spoken journal entry and keep the transcript.")
+            Text(vm.isRecording ? "Listening… speak naturally. Words will appear in Daily Journal." : "Record a spoken journal entry. The transcript will appear in Daily Journal so you can edit it.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
@@ -230,24 +230,9 @@ struct JournalView: View {
             .buttonStyle(.plain)
 
             if vm.isTranscribing {
-                ProgressView("Creating transcript...")
+                ProgressView("Adding transcript to your journal...")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
-            }
-
-            if !vm.transcriptText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Transcript")
-                        .font(.subheadline.bold())
-                        .foregroundStyle(Color.brandPrimary)
-
-                    Text(vm.transcriptText)
-                        .font(.body)
-                        .foregroundStyle(.primary)
-                }
-                .padding(14)
-                .background(Color.white.opacity(0.8))
-                .clipShape(RoundedRectangle(cornerRadius: 18))
             }
         }
         .padding(18)
@@ -517,17 +502,10 @@ struct JournalView: View {
                 Text(entry.journalText)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
-            }
-
-            if let transcript = entry.transcript, !transcript.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Transcript")
-                        .font(.caption.bold())
-                        .foregroundStyle(.secondary)
-                    Text(transcript)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
+            } else if let transcript = entry.transcript, !transcript.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                Text(transcript)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
 
             if !entry.gratitudeOne.isEmpty || !entry.gratitudeTwo.isEmpty || !entry.gratitudeThree.isEmpty {

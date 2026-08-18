@@ -100,7 +100,9 @@ struct PanicRoomView: View {
                                             .font(.headline)
                                             .foregroundColor(.brandPrimary)
 
-                                        Text("Open the page and let it out instead of sending it anywhere.")
+                                        Text(vm.saveDrawingsEnabled
+                                             ? "Saved on this device. You can turn this off in Settings."
+                                             : "Open the page and let it out. Enable Save drawings in Settings to keep it.")
                                             .font(.caption)
                                             .foregroundColor(.brandPrimary.opacity(0.7))
                                     }
@@ -275,7 +277,12 @@ struct PanicRoomView: View {
                 .scrollDismissesKeyboard(.interactively)
             }
             .navigationBarHidden(true)
-            .sheet(isPresented: $showDrawingPad) {
+            .onAppear {
+                vm.syncDrawingPreference()
+            }
+            .sheet(isPresented: $showDrawingPad, onDismiss: {
+                vm.persistDoodlesIfNeeded()
+            }) {
                 DrawingPadSheet(vm: vm)
                     .presentationDetents([.medium, .large])
                     .presentationDragIndicator(.visible)
@@ -327,6 +334,9 @@ private struct DrawingPadSheet: View {
                                 let isNew = (value.translation.width + value.translation.height == 0)
                                 vm.addDoodlePoint(value.location, isNew: isNew)
                             }
+                            .onEnded { _ in
+                                vm.persistDoodlesIfNeeded()
+                            }
                     )
                     .frame(maxWidth: .infinity)
                     .frame(height: 420)
@@ -345,16 +355,20 @@ private struct DrawingPadSheet: View {
                     .background(Color.brandPrimary)
                     .clipShape(Capsule())
 
-                    Text("Nothing you draw leaves this space.")
+                    Text(vm.saveDrawingsEnabled
+                         ? "Saved on this device only. You can turn this off in Settings."
+                         : "Drawings stay temporary unless you enable Save drawings in Settings.")
                         .font(.caption)
                         .foregroundColor(.brandPrimary.opacity(0.7))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
                 }
                 .padding(.top, 24)
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Clear") {
-                        vm.clearDoodles()
+                    Button("Done") {
+                        vm.persistDoodlesIfNeeded()
                         dismiss()
                     }
                     .foregroundColor(.brandPrimary)

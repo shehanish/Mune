@@ -16,6 +16,7 @@ struct SettingsView: View {
     @AppStorage("reminderMinute")        private var reminderMinute        = 0
     @AppStorage("healingHintsEnabled")   private var healingHintsEnabled   = true
     @AppStorage("reduceMotionEnabled")   private var reduceMotionEnabled   = false
+    @AppStorage("saveDrawingsEnabled")   private var saveDrawingsEnabled   = false
 
     @State private var notificationStatus: UNAuthorizationStatus = .notDetermined
     @State private var showPermissionDeniedAlert = false
@@ -81,6 +82,22 @@ struct SettingsView: View {
 
                             Toggle("Reduce motion", isOn: $reduceMotionEnabled)
                             Text("Turns off animated blobs and transitions.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .padding(.top, -6)
+                        }
+
+                        settingsCard(title: "Calm Space") {
+                            Toggle("Save drawings", isOn: Binding(
+                                get: { saveDrawingsEnabled },
+                                set: { newValue in
+                                    saveDrawingsEnabled = newValue
+                                    if !newValue {
+                                        UserDefaults.standard.removeObject(forKey: "savedCalmSpaceDoodles")
+                                    }
+                                }
+                            ))
+                            Text("Keep doodles on this device. Turn this off if you want drawings to stay temporary.")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                                 .padding(.top, -6)
