@@ -141,7 +141,7 @@ struct PanicRoomView: View {
                             Text("Private Vent Space")
                                 .font(.headline)
                                 .foregroundColor(.brandPrimary)
-                            Text("Type whatever is on your mind. This won't be saved or read by anyone.")
+                            Text("Say what you'd send them — without sending it. Nothing here is saved or shared.")
                                 .font(.caption)
                                 .foregroundColor(.brandPrimary.opacity(0.7))
                             

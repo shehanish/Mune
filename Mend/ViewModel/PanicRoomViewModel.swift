@@ -37,11 +37,11 @@ class PanicRoomViewModel {
     private var audioPlayer: AVAudioPlayer?
     
     let quotes = [
-        "Take it one breath at a time.",
-        "This feeling will pass.",
-        "You are safe here.",
-        "You are stronger than this moment.",
-        "It's okay to feel this way. Be gentle with yourself."
+        "The urge to text them will pass.",
+        "Missing them doesn't mean going back is right.",
+        "You're allowed to grieve and still move forward.",
+        "No contact is an act of self-respect.",
+        "Healing isn't linear — today still counts."
     ]
 
     init() {

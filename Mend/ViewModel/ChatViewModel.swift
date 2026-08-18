@@ -33,7 +33,7 @@ final class ChatViewModel {
         let resolvedName = userName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Friend" : userName
         self.messages = [
             ChatMessage(
-                text: "I'm here to listen, \(resolvedName). What's on your mind?",
+                text: "I'm here while you get through this, \(resolvedName). What's on your mind?",
                 isUser: false,
                 senderName: "Mend"
             )

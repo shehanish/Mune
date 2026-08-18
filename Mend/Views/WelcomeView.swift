@@ -56,7 +56,7 @@ struct WelcomeView: View {
                             .kerning(2)
                             .shadow(color: Color.brandPrimary.opacity(0.18), radius: 8, y: 4)
 
-                        Text("Your gentle healing companion")
+                        Text("Your breakup healing companion")
                             .font(.system(size: 17, weight: .medium, design: .rounded))
                             .foregroundStyle(Color.textOnPrimary.opacity(0.72))
                             .multilineTextAlignment(.center)
@@ -71,19 +71,19 @@ struct WelcomeView: View {
                 // MARK: - Feature highlights
                 VStack(spacing: 12) {
                     WelcomeFeatureRow(
-                        icon: "heart.text.square.fill",
-                        title: "Daily mood check-ins",
-                        subtitle: "Understand how you feel, one day at a time"
+                        icon: "hand.raised.fill",
+                        title: "No contact support",
+                        subtitle: "Stay strong when you want to reach out"
                     )
                     WelcomeFeatureRow(
-                        icon: "bubble.left.and.bubble.right.fill",
-                        title: "AI-powered gentle support",
-                        subtitle: "A compassionate companion that listens"
+                        icon: "heart.circle.fill",
+                        title: "Help in hard moments",
+                        subtitle: "When you want to text them or feel overwhelmed"
                     )
                     WelcomeFeatureRow(
                         icon: "lock.fill",
-                        title: "Private & stays on your device",
-                        subtitle: "Your feelings are yours alone"
+                        title: "Private grief space",
+                        subtitle: "Your breakup story stays on your device"
                     )
                 }
                 .padding(.horizontal, 24)
@@ -99,7 +99,7 @@ struct WelcomeView: View {
                         showAuthSheet = true
                     } label: {
                         HStack(spacing: 10) {
-                            Text("Begin your journey")
+                            Text("Start your healing")
                                 .font(.system(size: 17, weight: .bold, design: .rounded))
                             Image(systemName: "arrow.right")
                                 .font(.subheadline.weight(.bold))

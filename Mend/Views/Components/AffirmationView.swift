@@ -1,46 +1,18 @@
 import SwiftUI
 
-private extension String {
-    var mathItalicized: String {
-        map { character in
-            guard let scalar = character.unicodeScalars.first else { return character }
-
-            switch scalar.value {
-            case 65...90:
-                return Character(UnicodeScalar(0x1D434 + scalar.value - 65)!)
-            case 97...122:
-                if scalar.value == 104 {
-                    return Character("ℎ")
-                }
-                return Character(UnicodeScalar(0x1D44E + scalar.value - 97)!)
-            default:
-                return character
-            }
-        }
-        .map(String.init)
-        .joined()
-    }
-}
 
 struct AffirmationView: View {
     @State private var selectedAffirmationIndex = 0
 
     private let affirmations = [
-        "I am deeply beautiful, incredibly strong, and entirely whole.",
-        "This pain is temporary; my strength is permanent.",
-        "I am redirecting all my love back into myself.",
-        "I am not broken; I am breaking through.",
-        "Every single day, I am growing and evolving.",
-        "My scars are just proof of my resilience.",
-        "I choose to treat myself with radical kindness today.",
-        "I hold the pen. I write my own beautiful future.",
-        "I am worthy of the love I so freely give.",
-        "I am rising, I am healing, and I am unstoppable."
+        "Missing them doesn't mean going back is right.",
+        "No contact is an act of self-respect.",
+        "Healing isn't linear — today still counts."
     ]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("A gentle space to remember your strength.")
+            Text("A gentle reminder while you heal from this breakup.")
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(Color.darkCharcoal)
 
@@ -48,7 +20,7 @@ struct AffirmationView: View {
             TabView(selection: $selectedAffirmationIndex) {
                 ForEach(affirmations.indices, id: \.self) { index in
                     VStack(spacing: 12) {
-                        Text("\"\(affirmations[index].mathItalicized)\"")
+                        Text("\"\(affirmations[index])\"")
                             .font(.title3.weight(.semibold))
                             .multilineTextAlignment(.center)
                             .foregroundStyle(Color.darkCharcoal)

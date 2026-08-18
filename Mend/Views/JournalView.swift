@@ -118,7 +118,7 @@ struct JournalView: View {
 
     private var dashboardCard: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("Healing Dashboard")
+            Text("Your healing week")
                 .font(.headline)
                 .foregroundStyle(Color.brandPrimary)
 
@@ -191,7 +191,7 @@ struct JournalView: View {
                 .font(.largeTitle.bold())
                 .foregroundStyle(Color.brandPrimary)
 
-            Text("Write it, say it, or both. Spoken entries land in your journal so you can edit them before saving.")
+            Text("Process what you're feeling — write, speak, or both. This is your space to grieve and reflect.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }

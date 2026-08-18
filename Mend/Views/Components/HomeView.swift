@@ -91,7 +91,7 @@ struct HomeView: View {
                                 .fontWeight(.bold)
                                 .foregroundStyle(Color.brandPrimary)
 
-                            Text("Let's unpack the day slowly... together.")
+                            Text("Getting through today, one step at a time.")
                                 .font(.subheadline)
                                 .foregroundStyle(Color.brandPrimary)
 
@@ -278,7 +278,7 @@ struct HomeView: View {
             // Header
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Label("This week", systemImage: "calendar")
+                    Label("Your healing week", systemImage: "calendar")
                         .font(.headline)
                         .foregroundStyle(Color.brandPrimary)
                     Text(vm.weeklySummaryLine)
@@ -317,7 +317,7 @@ struct HomeView: View {
             }
 
             VStack(alignment: .leading, spacing: 8) {
-                Text("What helped you most")
+                Text("What's helping your healing")
                     .font(.caption.bold())
                     .foregroundStyle(.secondary)
 

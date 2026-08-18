@@ -2,9 +2,9 @@
 
 # Mend
 
-### Your gentle healing companion
+### Your breakup healing companion
 
-*Track your days, understand your feelings, and find support that feels human.*
+*Get through the breakup day by day — especially when the hurt feels unbearable.*
 
 [![Swift](https://img.shields.io/badge/Swift-5.9-orange.svg)](https://swift.org)
 [![iOS](https://img.shields.io/badge/iOS-17.0+-blue.svg)](https://developer.apple.com/ios/)
@@ -47,26 +47,26 @@
 
 ## What is Mend?
 
-Mend is a private, local-first iOS wellness app for people who want a softer place to process their feelings. It combines daily mood check-ins, AI-powered reflections, a guided journal, and a calm space for moments of anxiety — all stored privately on your device.
+Mend is a private, local-first iOS app for people going through a breakup. It helps you process hurtful feelings, stay strong during no contact, survive hard moments when you want to text your ex, and slowly come back to yourself — with daily check-ins, breakup-aware AI chat, journaling, and a calm space when you're overwhelmed. Everything stays privately on your device.
 
 ---
 
 ## Features
 
 **Daily check-ins**
-Log how you feel each day with a mood picker and optional notes. Mend tracks patterns over time and shows you a gentle weekly snapshot.
+Log how you feel each day after the breakup. Mend tracks your healing week and shows gentle patterns over time.
 
-**AI companion — Talk to Mend**
-Have a real conversation with an AI that listens without judgment. Powered by OpenAI via a secure backend proxy — your messages are never stored by Mend.
+**Breakup support — Talk to Mend**
+Have a real conversation with AI that understands breakup recovery — no contact, grief, and hard urges. Powered by OpenAI via a secure backend proxy. Chat stays in memory only and is never stored by Mend.
 
 **Journal**
-Write freely, record voice entries, or log gratitudes. Your journal stays entirely on your device using SwiftData.
+Process the breakup in writing or by voice. Log gratitudes and reflect on what you're learning. Your journal stays entirely on your device using SwiftData.
 
 **Calm Space**
-A dedicated screen for moments of overwhelm. Includes guided breathing, the 5-4-3-2-1 grounding technique, a private vent pad, a drawing canvas, and a direct link to the **988 Suicide & Crisis Lifeline**.
+For the moments you want to text them, checked their socials, or feel like day one again. Includes guided breathing, 5-4-3-2-1 grounding, a private vent pad (say it without sending it), a drawing canvas, and a direct link to the **988 Suicide & Crisis Lifeline**.
 
 **Personal setup**
-Choose your name, healing focus, and daily reminder time during a gentle onboarding flow. Everything adapts to feel like *your* Mend.
+Choose your name and breakup goals during onboarding — no contact, processing grief, hard-moment support, rebuilding your routine. Everything adapts to feel like *your* Mend.
 
 ---
 
@@ -143,5 +143,5 @@ Mend includes a direct link to the **988 Suicide & Crisis Lifeline** (call or te
 ---
 
 <div align="center">
-  <sub>Built with care · Your thoughts are yours</sub>
+  <sub>Built with care · Your breakup story is yours</sub>
 </div>

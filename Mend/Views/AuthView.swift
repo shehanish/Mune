@@ -15,16 +15,16 @@ struct AuthView: View {
     // MARK: - Transient state
     @State private var name          = ""
     @State private var step          = 0           // 0 = welcome, 1 = name, 2 = focus, 3 = complete
-    @State private var selectedFocuses: Set<String> = ["Daily check-ins"]
+    @State private var selectedFocuses: Set<String> = ["No contact"]
     @State private var showNameError = false
     @State private var goingForward  = true
 
     // MARK: - Data
     private let focusOptions: [(title: String, subtitle: String, icon: String)] = [
-        ("Daily check-ins",  "Log how you feel each day",          "sun.and.horizon.fill"),
-        ("Voice journaling", "Speak and save your thoughts",       "mic.fill"),
-        ("Calm support",     "Softer reflections when it's hard",  "heart.circle.fill"),
-        ("Track healing",    "See your progress over time",        "chart.line.uptrend.xyaxis"),
+        ("No contact",         "Stay strong when I want to reach out",     "hand.raised.fill"),
+        ("Process the grief",  "Journal, voice note, feel it safely",      "heart.text.square.fill"),
+        ("Hard moments",       "Help when I want to text them",            "heart.circle.fill"),
+        ("Rebuild my routine", "Small daily wins, back to myself",         "sun.and.horizon.fill"),
     ]
 
     private let indicatorSteps = 2   // steps 1 & 2 show the dot indicator
@@ -92,7 +92,7 @@ struct AuthView: View {
         .onAppear {
             name = (userName.isEmpty || userName == "Friend") ? "" : userName
             let saved = healingFocus.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
-            selectedFocuses = saved.isEmpty ? ["Daily check-ins"] : Set(saved)
+            selectedFocuses = saved.isEmpty ? ["No contact"] : Set(saved)
         }
     }
 
@@ -136,7 +136,7 @@ struct AuthView: View {
                         .font(.system(size: 30, weight: .bold, design: .rounded))
                         .foregroundStyle(Color.textOnPrimary)
 
-                    Text("A softer place to heal, track your days,\nand come back to yourself.")
+                    Text("Your breakup healing companion.\nOne day at a time — especially the hard ones.")
                         .font(.body)
                         .multilineTextAlignment(.center)
                         .foregroundStyle(Color.textOnPrimary.opacity(0.80))
@@ -145,9 +145,9 @@ struct AuthView: View {
                 }
 
                 VStack(spacing: 10) {
-                    featurePill(icon: "lock.fill",          label: "Private — stored only on your device")
-                    featurePill(icon: "brain.head.profile", label: "AI-powered gentle support")
-                    featurePill(icon: "chart.bar.fill",     label: "Track and understand your healing")
+                    featurePill(icon: "lock.fill",          label: "Private — your story stays on your device")
+                    featurePill(icon: "brain.head.profile", label: "Breakup-aware AI support")
+                    featurePill(icon: "hand.raised.fill",   label: "Built for no contact and hard moments")
                 }
                 .padding(.horizontal, 28)
 
@@ -238,8 +238,8 @@ struct AuthView: View {
 
                 pageHeader(
                     icon: "sparkles",
-                    title: "What matters most\nright now?",
-                    message: "Pick everything that resonates ... you can choose as many as you like."
+                    title: "What do you need\nmost right now?",
+                    message: "Pick everything that fits — Mend will focus on what matters for your breakup."
                 )
                 .padding(.bottom, 24)
 
@@ -289,7 +289,7 @@ struct AuthView: View {
                         .multilineTextAlignment(.center)
                         .accessibilityAddTraits(.isHeader)
 
-                    Text("Your personal Mend is ready.\nTake a breath. You've got this.")
+                    Text("Your breakup buddy is ready.\nTake a breath. One day at a time.")
                         .font(.body)
                         .multilineTextAlignment(.center)
                         .foregroundStyle(Color.textOnPrimary.opacity(0.78))

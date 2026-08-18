@@ -59,7 +59,7 @@ struct SettingsView: View {
                                         scheduleReminder(hour: reminderHour, minute: reminderMinute)
                                     }
 
-                                    Text("A gentle nudge to check in and reflect on your day.")
+                                    Text("A gentle nudge to check in on your healing.")
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
@@ -118,7 +118,7 @@ struct SettingsView: View {
                                     .foregroundStyle(Color.brandPrimary)
                             }
                             Divider()
-                            Text("Mend is a wellness support tool. It is not a substitute for professional mental health care. If you are in crisis, call or text 988.")
+                            Text("Mend is a breakup support tool. It is not a substitute for professional mental health care. If you are in crisis, call or text 988.")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }

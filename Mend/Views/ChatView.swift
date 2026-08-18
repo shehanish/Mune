@@ -26,7 +26,7 @@ struct ChatView: View {
                     Text("Talk to Mend")
                         .font(.headline.bold())
                         .foregroundStyle(Color.brandPrimary)
-                    Text("AI companion · Not a substitute for professional care")
+                    Text("Breakup support · Not professional care")
                         .font(.caption)
                         .foregroundStyle(Color.brandPrimary.opacity(0.52))
                 }
