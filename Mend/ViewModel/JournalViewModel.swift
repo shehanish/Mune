@@ -27,11 +27,12 @@ final class JournalViewModel {
     var isRecording: Bool = false
     var isTranscribing: Bool = false
     var statusMessage: String?
+    /// Shown next to the Voice Journal controls (permissions / recording issues).
+    var voiceStatusMessage: String?
     var moodEntries: [MoodEntry] = []
     var historyEntries: [JournalEntry] = []
     var timelineEntries: [TimelineEntry] = []
     var healingDashboard: HealingDashboard = .empty
-    var debugHistoryMessage: String = "Debug: journal history not loaded yet"
 
     private var audioEngine: AVAudioEngine?
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
@@ -52,6 +53,79 @@ final class JournalViewModel {
         userName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Friend" : userName
     }
 
+    struct JournalTemplate: Identifiable, Hashable {
+        let id: String
+        let title: String
+        let body: String
+    }
+
+    static let breakupTemplates: [JournalTemplate] = [
+        JournalTemplate(
+            id: "letter",
+            title: "Letter I won’t send",
+            body: """
+            Dear them,
+
+            I’m writing this because I need somewhere safe for these words, not because I’m sending them.
+
+            What I wish I could say:
+
+
+            What I’m really feeling underneath:
+
+
+            What I need for myself instead:
+
+            """
+        ),
+        JournalTemplate(
+            id: "miss-vs-need",
+            title: "What I miss vs what I need",
+            body: """
+            What I miss about them or the relationship:
+
+
+            What I actually need for my healing:
+
+
+            The difference between missing them and needing them back:
+
+            """
+        ),
+        JournalTemplate(
+            id: "red-flags",
+            title: "Signs I want to remember",
+            body: """
+            Looking back with kindness, some signs I overlooked were:
+
+            1.
+            2.
+            3.
+
+            What I want to gently remember if I ever doubt myself:
+
+            """
+        ),
+        JournalTemplate(
+            id: "self-win",
+            title: "One kindness I gave myself today",
+            body: """
+            Today I did one thing for myself:
+
+            What I did:
+
+
+            How it felt:
+
+
+            What this tells me about who I’m becoming:
+
+            """
+        )
+    ]
+
+    var selectedTemplateID: String?
+
     var canSaveEntry: Bool {
         !journalText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
         !transcriptText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
@@ -60,9 +134,21 @@ final class JournalViewModel {
         !gratitudeThree.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
+    func applyJournalTemplate(_ template: JournalTemplate) {
+        selectedTemplateID = template.id
+        let trimmed = journalText.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if trimmed.isEmpty {
+            journalText = template.body
+        } else {
+            journalText = trimmed + "\n\n" + template.body
+        }
+
+        statusMessage = "Prompt added. Change anything you like before you save."
+    }
+
     func loadHistory() async {
-        debugHistoryMessage = "Debug: loading history..."
-        print("[JournalViewModel] loadHistory started for userID=\(userID)")
+        MendLog.debug("[JournalViewModel] loadHistory started for userID=\(userID)")
 
         do {
             let now = Date()
@@ -83,12 +169,10 @@ final class JournalViewModel {
             historyEntries = try context.fetch(descriptor)
             rebuildTimelineEntries()
             rebuildHealingDashboard()
-            debugHistoryMessage = "Debug: loaded moods=\(moodEntries.count), journalEntries=\(historyEntries.count), timeline=\(timelineEntries.count)"
-            print("[JournalViewModel] loadHistory success moods=\(moodEntries.count) journalEntries=\(historyEntries.count) timeline=\(timelineEntries.count)")
+            MendLog.debug("[JournalViewModel] loadHistory success moods=\(moodEntries.count) journalEntries=\(historyEntries.count) timeline=\(timelineEntries.count)")
         } catch {
-            statusMessage = "Could not load journal history."
-            debugHistoryMessage = "Debug: loadHistory failed - \(error.localizedDescription)"
-            print("[JournalViewModel] loadHistory failed: \(error)")
+            statusMessage = "I couldn’t load your journal just now. We can try again in a moment."
+            MendLog.debug("[JournalViewModel] loadHistory failed: \(error)")
         }
     }
 
@@ -108,14 +192,12 @@ final class JournalViewModel {
         let trimmedGratitudeThree = gratitudeThree.trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard !trimmedJournal.isEmpty || !trimmedTranscript.isEmpty || !trimmedGratitudeOne.isEmpty || !trimmedGratitudeTwo.isEmpty || !trimmedGratitudeThree.isEmpty else {
-            statusMessage = "Add a journal, recording, or at least one gratitude before saving."
-            debugHistoryMessage = "Debug: save blocked - no content to save"
-            print("[JournalViewModel] saveJournalEntry blocked: empty content")
+            statusMessage = "Add a journal note, a recording, or at least one gratitude before saving, whatever feels possible today."
+            MendLog.debug("[JournalViewModel] saveJournalEntry blocked: empty content")
             return
         }
 
-        debugHistoryMessage = "Debug: saving journal entry..."
-        print("[JournalViewModel] saveJournalEntry started journal=\(!trimmedJournal.isEmpty) transcript=\(!trimmedTranscript.isEmpty) gratitudes=\(!trimmedGratitudeOne.isEmpty || !trimmedGratitudeTwo.isEmpty || !trimmedGratitudeThree.isEmpty)")
+        MendLog.debug("[JournalViewModel] saveJournalEntry started journal=\(!trimmedJournal.isEmpty) transcript=\(!trimmedTranscript.isEmpty) gratitudes=\(!trimmedGratitudeOne.isEmpty || !trimmedGratitudeTwo.isEmpty || !trimmedGratitudeThree.isEmpty)")
 
         let entry = JournalEntry(
             userID: userID,
@@ -141,13 +223,12 @@ final class JournalViewModel {
             gratitudeThree = ""
             transcriptText = ""
             latestTranscript = ""
-            statusMessage = "Journal saved for today."
-            debugHistoryMessage = "Debug: save succeeded, journalEntries=\(historyEntries.count), timeline=\(timelineEntries.count)"
-            print("[JournalViewModel] saveJournalEntry success journalEntries=\(historyEntries.count) timeline=\(timelineEntries.count)")
+            selectedTemplateID = nil
+            statusMessage = "Saved. I’m holding this with you."
+            MendLog.debug("[JournalViewModel] saveJournalEntry success journalEntries=\(historyEntries.count) timeline=\(timelineEntries.count)")
         } catch {
-            statusMessage = "Could not save your journal entry."
-            debugHistoryMessage = "Debug: save failed - \(error.localizedDescription)"
-            print("[JournalViewModel] saveJournalEntry failed: \(error)")
+            statusMessage = "I couldn’t save that just now. We can try again when you’re ready."
+            MendLog.debug("[JournalViewModel] saveJournalEntry failed: \(error)")
         }
     }
 
@@ -165,11 +246,11 @@ final class JournalViewModel {
             try context.save()
             NotificationCenter.default.post(name: .journalEntriesDidChange, object: nil)
             await loadHistory()
-            statusMessage = "Mood entry deleted."
-            print("[JournalViewModel] deleteMoodEntries success count=\(targets.count)")
+            statusMessage = "That check-in has been removed."
+            MendLog.debug("[JournalViewModel] deleteMoodEntries success count=\(targets.count)")
         } catch {
-            statusMessage = "Could not delete the mood entry."
-            print("[JournalViewModel] deleteMoodEntries failed: \(error)")
+            statusMessage = "I couldn’t remove that check-in just now."
+            MendLog.debug("[JournalViewModel] deleteMoodEntries failed: \(error)")
         }
     }
 
@@ -187,11 +268,11 @@ final class JournalViewModel {
             try context.save()
             NotificationCenter.default.post(name: .journalEntriesDidChange, object: nil)
             await loadHistory()
-            statusMessage = "Journal entry deleted."
-            print("[JournalViewModel] deleteJournalEntries success count=\(targets.count)")
+            statusMessage = "That page has been removed."
+            MendLog.debug("[JournalViewModel] deleteJournalEntries success count=\(targets.count)")
         } catch {
-            statusMessage = "Could not delete the journal entry."
-            print("[JournalViewModel] deleteJournalEntries failed: \(error)")
+            statusMessage = "I couldn’t remove that entry just now."
+            MendLog.debug("[JournalViewModel] deleteJournalEntries failed: \(error)")
         }
     }
 
@@ -200,18 +281,18 @@ final class JournalViewModel {
 
         let microphoneAllowed = await requestMicrophonePermission()
         guard microphoneAllowed else {
-            statusMessage = "Microphone access is needed to record your journal."
+            voiceStatusMessage = "I’ll need microphone access to listen when you speak."
             return
         }
 
         let speechAllowed = await requestSpeechPermission()
         guard speechAllowed else {
-            statusMessage = "Speech recognition permission is needed to create a transcript."
+            voiceStatusMessage = "I’ll need speech recognition permission to turn your words into text."
             return
         }
 
         guard let recognizer = preferredSpeechRecognizer(), recognizer.isAvailable else {
-            statusMessage = "Speech recognition is currently unavailable."
+            voiceStatusMessage = "Speech recognition isn’t available right now. We can try again later."
             return
         }
 
@@ -221,6 +302,7 @@ final class JournalViewModel {
         latestTranscript = ""
         transcriptText = ""
         didStartWithEmptyJournal = journalText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        voiceStatusMessage = nil
 
         do {
             let session = AVAudioSession.sharedInstance()
@@ -233,12 +315,12 @@ final class JournalViewModel {
             request.taskHint = .dictation
             request.addsPunctuation = true
             request.contextualStrings = speechContextHints
-            request.requiresOnDeviceRecognition = false
+            request.requiresOnDeviceRecognition = true
 
             let inputNode = engine.inputNode
             let format = inputNode.outputFormat(forBus: 0)
             guard format.sampleRate > 0, format.channelCount > 0 else {
-                statusMessage = "Microphone is not ready. Please try again."
+                voiceStatusMessage = "The microphone isn’t ready yet. Let’s try again in a moment."
                 return
             }
 
@@ -253,7 +335,7 @@ final class JournalViewModel {
             audioEngine = engine
             recognitionRequest = request
             isRecording = true
-            statusMessage = "Listening… speak clearly and I’ll add the words to your journal."
+            statusMessage = "I’m listening… speak naturally and I’ll catch your words."
 
             recognitionTask = recognizer.recognitionTask(with: request) { [weak self] result, error in
                 Task { @MainActor in
@@ -279,7 +361,7 @@ final class JournalViewModel {
         } catch {
             stopAudioEngine()
             isRecording = false
-            statusMessage = "Could not start recording."
+            voiceStatusMessage = "I couldn’t start listening just now."
         }
     }
 
@@ -288,7 +370,7 @@ final class JournalViewModel {
 
         isRecording = false
         isTranscribing = true
-        statusMessage = "Finishing transcript..."
+        statusMessage = "Gathering your words…"
 
         recognitionRequest?.endAudio()
         stopAudioEngine()
@@ -322,9 +404,9 @@ final class JournalViewModel {
             } else {
                 appendTranscriptToJournal(trimmedTranscript)
             }
-            statusMessage = "Transcript added to your journal. You can edit it before saving."
+            statusMessage = "Your words are in the journal. Edit anything before you save."
         } else {
-            statusMessage = "Recording saved, but no transcript was captured."
+            statusMessage = "I saved the recording, but I couldn’t catch the words this time."
         }
     }
 
@@ -424,13 +506,13 @@ final class JournalViewModel {
 
         let moodTrend: String
         if recentMoodEntries.isEmpty {
-            moodTrend = "Start a few check-ins and I’ll help you see patterns."
+            moodTrend = "As you check in, gentle patterns will appear here."
         } else if supportiveMoodCount > heavyMoodCount {
-            moodTrend = "Your week is leaning steadier, with more supportive moods showing up."
+            moodTrend = "This week looks a little steadier. More supportive feelings are showing up."
         } else if heavyMoodCount > supportiveMoodCount {
-            moodTrend = "This week has carried more heavy moments. Your notes suggest you’re still staying connected to yourself."
+            moodTrend = "This week held more heavy moments. Even so, you’re staying connected to yourself. That matters."
         } else {
-            moodTrend = "Your week has felt mixed, which is normal. The key is that you kept checking in."
+            moodTrend = "This week has felt mixed, and that’s okay. What matters is you kept showing up."
         }
 
         let themeSource = recentJournalEntries.flatMap { entry in
@@ -442,11 +524,11 @@ final class JournalViewModel {
 
         let supportMessage: String
         if heavyMoodCount > supportiveMoodCount {
-            supportMessage = "Try one small grounding step today: breathe slowly, drink water, or reach out to someone safe."
+            supportMessage = "If today feels heavy, try one soft step: a slow breath, a sip of water, or a message to someone safe."
         } else if gratitudeDays > 0 {
-            supportMessage = "Keep noticing what helps. Gratitude and check-ins are building a clear picture of your healing."
+            supportMessage = "Keep noticing what helps. Your gratitude and check-ins are painting a kinder picture of your healing."
         } else {
-            supportMessage = "A few more entries will help the app show you what supports your healing most."
+            supportMessage = "A few more entries will help me gently show you what supports you most."
         }
 
         healingDashboard = HealingDashboard(
@@ -548,9 +630,9 @@ final class JournalViewModel {
             weeklyCheckIns: 0,
             gratitudeDays: 0,
             dominantMood: nil,
-            moodTrend: "Start a few check-ins and I’ll help you see patterns.",
+            moodTrend: "As you check in, gentle patterns will appear here.",
             themes: [],
-            supportMessage: "A few more entries will help the app show you what supports your healing most."
+            supportMessage: "A few more entries will help me gently show you what supports you most."
         )
     }
 

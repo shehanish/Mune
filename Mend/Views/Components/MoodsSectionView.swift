@@ -12,14 +12,14 @@ struct MoodsSectionView: View {
     let moods: [String]
     @Binding var selectedMoods: Set<String>
 
-    // NEW: bind the note text
     @Binding var notesText: String
+    var isNotesFocused: FocusState<Bool>.Binding
 
     var onApply: (_ appliedMoods: [String]) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("How are you feeling?")
+            Text("How do you feel today?")
                 .font(.headline)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal)
@@ -34,16 +34,15 @@ struct MoodsSectionView: View {
 
                 // NEW: Note box under selected moods box
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Would you like to tell me a bit more about how you're feeling?")
-                        .font(.subheadline)
-                        .foregroundStyle(Color.brandPrimary)
+                    
 
-                    TextField("Type how you feel in words…", text: $notesText, axis: .vertical)
+                    TextField("Write whatever is on your heart…", text: $notesText, axis: .vertical)
+                        .focused(isNotesFocused)
                         .lineLimit(3...6)
                         .padding(12)
-                        .background(.white.opacity(0.85))
+                        .background(Color.fieldSurface)
                         .clipShape(RoundedRectangle(cornerRadius: 14))
-                        .environment(\.colorScheme, .light)
+                        .textInputAutocapitalization(.sentences)
                         .overlay(
                             RoundedRectangle(cornerRadius: 14)
                                 .stroke(Color.brandPrimary.opacity(0.35), lineWidth: 1)
@@ -53,11 +52,11 @@ struct MoodsSectionView: View {
                 Button {
                     onApply(Array(selectedMoods).sorted())
                 } label: {
-                    Text("Apply")
+                    Text("Share this with me")
                         .fontWeight(.bold)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
-                        .background(Color.darkCharcoal)
+                        .background(Color.brandFill)
                         .foregroundStyle(.white)
                         .clipShape(RoundedRectangle(cornerRadius: 14))
                 }
@@ -80,12 +79,14 @@ private struct MoodsSectionViewPreviewWrapper: View {
 
     @State private var selectedMoods: Set<String> = ["Calm", "Tired"]
     @State private var notesText: String = "I felt a bit overwhelmed today, but better now."
+    @FocusState private var isNotesFocused: Bool
 
     var body: some View {
         MoodsSectionView(
             moods: moods,
             selectedMoods: $selectedMoods,
-            notesText: $notesText
+            notesText: $notesText,
+            isNotesFocused: $isNotesFocused
         ) { _ in
             // Action for preview
         }

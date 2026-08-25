@@ -15,7 +15,7 @@ final class HomeViewModel {
     //Text note user can type
     var notesText: String = ""
     //AI Strings
-    var todayInsightText: String? = "You’re doing your best. Healing isn’t linear—take one small step today."
+    var todayInsightText: String? = "You’re doing your best. Healing isn’t a straight line. One soft step today is enough."
     var isGeneratingTodayInsight: Bool = false
     
     private let moodRepo: any MoodRepository
@@ -27,15 +27,16 @@ final class HomeViewModel {
     // Ephemeral UI state
     var selectedMoods: Set<String> = []
 
-    // Weekly Home summary
+    // Weekly Home summary (kept lean for Track; extra fields feed chat context)
     var weeklyMoodCounts: [MoodCount] = []
     var weeklyCheckInCount: Int = 0
     var weeklyNoteCount: Int = 0
-    var weeklySummaryLine: String = "Add a few check-ins and I’ll show your weekly pattern here."
-    var weeklyHelpfulPatternText: String = "Add a short note after a check-in and I can show what helped most."
+    var weeklySummaryLine: String = ""
+    var weeklyHelpfulPatternText: String = ""
     var weeklyWarningText: String?
     var weeklyTrendBars: [WeeklyTrendBar] = []
-    var latestCheckInText: String = "No recent check-ins yet."
+    var latestCheckInText: String = "No check-ins yet. That’s okay."
+    var weeklyTrackInsight: WeeklyTrackInsight = .empty
 
     
 
@@ -84,8 +85,8 @@ final class HomeViewModel {
             await loadHomeSummary()
             await generateInsightForToday()
         } catch {
-            print("[HomeViewModel] apply failed: \(error)")
-            lastError = friendlyErrorMessage(for: error, fallback: "I couldn't save that check-in just now. Please try again.")
+            MendLog.debug("[HomeViewModel] apply failed: \(error)")
+            lastError = friendlyErrorMessage(for: error, fallback: "I couldn’t save that just now. When you’re ready, we can try again together.")
         }
     }
 
@@ -115,26 +116,26 @@ final class HomeViewModel {
                 .map { MoodCount(mood: $0.key, count: $0.value) }
                 .sorted { $0.count > $1.count }
 
-            if let dominantMood = weeklyMoodCounts.first {
-                weeklySummaryLine = "This week, \(dominantMood.mood) is showing up most often."
-            } else {
-                weeklySummaryLine = "Add a few check-ins and I’ll show your weekly pattern here."
-            }
-
-            weeklyHelpfulPatternText = helpfulPatternSummary(from: sortedEntries)
+            weeklyHelpfulPatternText = helpfulPatternSummary(from: sortedEntries) ?? ""
             weeklyWarningText = heavyWeekWarning(for: moodScores, checkInCount: sortedEntries.count)
             weeklyTrendBars = buildWeeklyTrendBars(from: sortedEntries, ending: end)
+            weeklyTrackInsight = buildWeeklyTrackInsight(
+                checkInCount: sortedEntries.count,
+                moodCounts: weeklyMoodCounts,
+                helpfulPattern: weeklyHelpfulPatternText,
+                warning: weeklyWarningText
+            )
 
             if let latest = sortedEntries.last {
-                let moodText = latest.moods.isEmpty ? "No mood selected" : latest.moods.joined(separator: ", ")
+                let moodText = latest.moods.isEmpty ? "You hadn’t named a feeling yet" : latest.moods.joined(separator: ", ")
                 let noteText = latest.notes?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
                 latestCheckInText = noteText.isEmpty ? moodText : "\(moodText) · \(noteText)"
             } else {
-                latestCheckInText = "No recent check-ins yet."
+                latestCheckInText = "No check-ins yet. That’s okay."
             }
         } catch {
-            print("[HomeViewModel] loadHomeSummary failed: \(error)")
-            lastError = friendlyErrorMessage(for: error, fallback: "I couldn't load your home summary right now. Please try again.")
+            MendLog.debug("[HomeViewModel] loadHomeSummary failed: \(error)")
+            lastError = friendlyErrorMessage(for: error, fallback: "I couldn’t load your home summary right now. We can try again in a moment.")
         }
     }
 
@@ -159,14 +160,64 @@ final class HomeViewModel {
         }
     }
 
-    private func helpfulPatternSummary(from entries: [MoodEntry]) -> String {
+    private func buildWeeklyTrackInsight(
+        checkInCount: Int,
+        moodCounts: [MoodCount],
+        helpfulPattern: String,
+        warning: String?
+    ) -> WeeklyTrackInsight {
+        if checkInCount == 0 {
+            return WeeklyTrackInsight(
+                message: "When you’re ready, share how you’re feeling above. Noticing is already a brave, kind step.",
+                actionLabel: "Check in with me",
+                destination: .checkIn,
+                isHeavy: false
+            )
+        }
+
+        if let warning {
+            return WeeklyTrackInsight(
+                message: "\(warning) If the urge to reach out gets loud, come into Calm Space with me. We’ll ride it out together.",
+                actionLabel: "Come to Calm Space",
+                destination: .calmSpace,
+                isHeavy: true
+            )
+        }
+
+        if !helpfulPattern.isEmpty {
+            return WeeklyTrackInsight(
+                message: "\(helpfulPattern) Hold that close this week. You’re learning what soothes you.",
+                actionLabel: "Open your journal",
+                destination: .journal,
+                isHeavy: false
+            )
+        }
+
+        let heavyMoods: Set<String> = ["Sad", "Angry", "Anxious", "Lonely", "Empty", "Tired"]
+        if let top = moodCounts.first, heavyMoods.contains(top.mood) {
+            return WeeklyTrackInsight(
+                message: "\(top.mood) visited most this week. Writing it out or talking with me can soften the weight.",
+                actionLabel: "Open your journal",
+                destination: .journal,
+                isHeavy: false
+            )
+        }
+
+        let checkInText = checkInCount == 1 ? "1 check-in" : "\(checkInCount) check-ins"
+        return WeeklyTrackInsight(
+            message: "You had \(checkInText) this week. Showing up for yourself matters. I’m proud of you.",
+            actionLabel: nil,
+            destination: nil,
+            isHeavy: false
+        )
+    }
+
+    private func helpfulPatternSummary(from entries: [MoodEntry]) -> String? {
         let noteText = entries.compactMap { entry in
             entry.notes?.trimmingCharacters(in: .whitespacesAndNewlines)
         }.filter { !$0.isEmpty }
 
-        guard !noteText.isEmpty else {
-            return "Add a short note after a check-in and I can show what helped most."
-        }
+        guard !noteText.isEmpty else { return nil }
 
         let themes: [(label: String, keywords: [String])] = [
             ("rest", ["rest", "sleep", "nap", "slow down"]),
@@ -192,11 +243,9 @@ final class HomeViewModel {
             .prefix(2)
             .map { $0.key }
 
-        guard !topThemes.isEmpty else {
-            return "You’ve been writing things down consistently. That itself is helping you notice patterns."
-        }
+        guard !topThemes.isEmpty else { return nil }
 
-        return "What helped most: \(topThemes.joined(separator: " and "))."
+        return "What seemed to help most: \(topThemes.joined(separator: " and "))."
     }
 
     private func heavyWeekWarning(for scores: [Int], checkInCount: Int) -> String? {
@@ -207,9 +256,9 @@ final class HomeViewModel {
         let averageScore = Double(scores.reduce(0, +)) / Double(scores.count)
 
         if averageScore <= -0.35 {
-            return "This week looks heavy. Keep the next step very small and gentle."
+            return "This week has felt especially heavy, and you’re still here."
         } else if averageScore <= -0.15 {
-            return "Some of this week has felt heavy. Small steps still count."
+            return "Some of this week has felt tender and heavy."
         } else {
             return nil
         }
@@ -241,7 +290,7 @@ final class HomeViewModel {
         guard !isGeneratingTodayInsight else { return }
 
         isGeneratingTodayInsight = true
-        todayInsightText = "I’m here with you… just a moment."   // show text immediately
+        todayInsightText = "I’m right here… just gathering a thought for you."   // show text immediately
         lastError = nil
 
         // Artificial pause so the user sees the loading state
@@ -260,7 +309,7 @@ final class HomeViewModel {
             )
 
             guard let latestEntry = entries.last else {
-                todayInsightText = "If today feels heavy, try one gentle thing: water, a walk, or texting someone safe."
+                todayInsightText = "If today feels heavy, try one gentle kindness: a sip of water, a short walk, or a message to someone safe."
                 return
             }
 
@@ -277,18 +326,13 @@ final class HomeViewModel {
                 notes: latestNotes.isEmpty ? [] : [latestNotes]
             )
 
-            let moodsDebug = counts
-                .sorted { $0.key.localizedCaseInsensitiveCompare($1.key) == .orderedAscending }
-                .map { "\($0.key)=\($0.value)" }
-                .joined(separator: ", ")
-            let notesDebug = latestNotes.isEmpty ? "none" : latestNotes
-            print("[HomeViewModel] reflection AI input latestEntry moods=[\(moodsDebug)] notes=[\(notesDebug)]")
+            MendLog.debug("[HomeViewModel] reflection AI input latestEntry moodCount=\(counts.count) hasNote=\(!latestNotes.isEmpty)")
 
             todayInsightText = try await aiService.generateMoodInsight(from: input, userName: userName)
         } catch {
-            print("[HomeViewModel] generateInsightForToday failed: \(error)")
-            lastError = friendlyErrorMessage(for: error, fallback: "I couldn't generate your reflection right now. Please try again.")
-            todayInsightText = "Something went wrong generating your reflection. Try again in a moment."
+            MendLog.debug("[HomeViewModel] generateInsightForToday failed: \(error)")
+            lastError = friendlyErrorMessage(for: error, fallback: "I couldn’t gather a reflection just now. We can try again when you’re ready.")
+            todayInsightText = "I hit a small snag reflecting with you. Let’s try again in a moment."
         }
     }
 
@@ -301,6 +345,20 @@ final class HomeViewModel {
 
         return fallback
     }
+}
+
+struct WeeklyTrackInsight: Equatable {
+    let message: String
+    let actionLabel: String?
+    let destination: HealingFocusTipDestination?
+    let isHeavy: Bool
+
+    static let empty = WeeklyTrackInsight(
+        message: "When you’re ready, share how you’re feeling above.",
+        actionLabel: "Check in with me",
+        destination: .checkIn,
+        isHeavy: false
+    )
 }
 
 struct WeeklyTrendBar: Identifiable, Hashable {

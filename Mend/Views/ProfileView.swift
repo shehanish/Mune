@@ -33,7 +33,6 @@ struct ProfileView: View {
         NavigationStack {
             ZStack {
                 Color.appBackgroundGradient.ignoresSafeArea()
-                    .dismissKeyboardOnTap()
                     VStack(spacing: 24) {
 
                         // MARK: - Avatar hero
@@ -62,7 +61,7 @@ struct ProfileView: View {
                                         .font(.caption.weight(.bold))
                                         .foregroundStyle(.white)
                                         .padding(7)
-                                        .background(Color.brandPrimary)
+                                        .background(Color.brandFill)
                                         .clipShape(Circle())
                                         .overlay(Circle().stroke(Color.white, lineWidth: 2))
                                         .offset(x: 4, y: 4)
@@ -118,9 +117,9 @@ struct ProfileView: View {
                                     .autocorrectionDisabled()
                                     .font(.body)
                                     .padding(12)
-                                    .background(Color.white.opacity(0.90))
+                                    .background(Color.cardSurface)
                                     .clipShape(RoundedRectangle(cornerRadius: 12))
-                                    .foregroundStyle(Color.darkCharcoal)
+                                    .foregroundStyle(Color.brandPrimary)
                                     .accessibilityLabel("Name or nickname")
                             }
 
@@ -130,26 +129,25 @@ struct ProfileView: View {
                                         .font(.caption.weight(.semibold))
                                         .foregroundStyle(.secondary)
 
-                                    FlowLayout(spacing: 6) {
+                                    ChipFlowLayout(spacing: 6) {
                                         ForEach(focusChips, id: \.self) { chip in
                                             Text(chip)
                                                 .font(.subheadline.weight(.medium))
                                                 .foregroundStyle(Color.brandPrimary)
                                                 .padding(.horizontal, 12)
                                                 .padding(.vertical, 6)
-                                                .background(Color.brandPrimary.opacity(0.10))
-                                                .clipShape(Capsule())
+                                                .background(Color.brandPrimary.opacity(0.10), in: Capsule(style: .continuous))
                                         }
                                     }
 
-                                    Text("Change this in Settings.")
+                                    Text("You chose this when you arrived. It guides my gentle tips.")
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
                             }
                         }
                         .padding(18)
-                        .background(Color.white.opacity(0.88))
+                        .background(Color.cardSurface)
                         .clipShape(RoundedRectangle(cornerRadius: 22))
                         .shadow(color: Color.black.opacity(0.05), radius: 8, y: 4)
                         .padding(.horizontal, 20)
@@ -158,24 +156,27 @@ struct ProfileView: View {
                         Button {
                             let trimmed = editName.trimmingCharacters(in: .whitespacesAndNewlines)
                             userName = trimmed.isEmpty ? "Friend" : trimmed
+                            if !LocalProfileStore.activeProfileID.isEmpty {
+                                LocalProfileStore.updateDisplayName(userName, for: LocalProfileStore.activeProfileID)
+                            }
                             dismiss()
                         } label: {
-                            Text("Save Changes")
+                            Text("Save my changes")
                                 .font(.headline.weight(.bold))
                                 .foregroundStyle(.white)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 16)
-                                .background(Color.brandPrimary)
+                                .background(Color.brandFill)
                                 .clipShape(RoundedRectangle(cornerRadius: 18))
                                 .shadow(color: Color.brandPrimary.opacity(0.22), radius: 8, y: 5)
                         }
                         .padding(.horizontal, 20)
 
-                        // MARK: - Sign out
+                        // MARK: - Leave space
                         Button {
                             showSignOutAlert = true
                         } label: {
-                            Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
+                            Label("Leave this space for now", systemImage: "rectangle.portrait.and.arrow.right")
                                 .font(.subheadline.weight(.semibold))
                                 .foregroundStyle(.red.opacity(0.80))
                                 .frame(maxWidth: .infinity)
@@ -196,24 +197,18 @@ struct ProfileView: View {
                     Button("Close") { dismiss() }
                         .foregroundStyle(Color.brandPrimary)
                 }
-                ToolbarItemGroup(placement: .keyboard) {
-                    Spacer()
-                    Button("Done") { hideKeyboard() }
-                }
             }
-            .alert("Sign out?", isPresented: $showSignOutAlert) {
+            .alert("Leave this space?", isPresented: $showSignOutAlert) {
                 Button("Cancel", role: .cancel) {}
-                Button("Sign Out", role: .destructive) {
-                    userName         = ""
-                    profileImageData = Data()
-                    editName         = ""
-                    profileImage     = nil
-                    selectedItem     = nil
-                    isLoggedIn       = false
+                Button("Leave", role: .destructive) {
+                    LocalProfileStore.signOut()
+                    editName = ""
+                    profileImage = nil
+                    selectedItem = nil
                     dismiss()
                 }
             } message: {
-                Text("Your journal and check-in data will stay on this device.")
+                Text("Your journal and check-ins stay safely on this device. Come back to this space whenever you’re ready.")
             }
             .onAppear {
                 editName = userName
@@ -221,45 +216,6 @@ struct ProfileView: View {
                     profileImage = Image(uiImage: uiImage)
                 }
             }
-        }
-    }
-
-    private func hideKeyboard() {
-        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-    }
-
-
-// MARK: - Simple flow layout for chips
-private struct FlowLayout: Layout {
-    var spacing: CGFloat = 8
-
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let width = proposal.width ?? 0
-        var origin = CGPoint.zero
-        var maxY: CGFloat = 0
-        for subview in subviews {
-            let size = subview.sizeThatFits(.unspecified)
-            if origin.x + size.width > width, origin.x > 0 {
-                origin.x = 0
-                origin.y += size.height + spacing
-            }
-            maxY = max(maxY, origin.y + size.height)
-            origin.x += size.width + spacing
-        }
-        return CGSize(width: width, height: maxY)
-    }
-
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        var origin = CGPoint(x: bounds.minX, y: bounds.minY)
-        for subview in subviews {
-            let size = subview.sizeThatFits(.unspecified)
-            if origin.x + size.width > bounds.maxX, origin.x > bounds.minX {
-                origin.x = bounds.minX
-                origin.y += size.height + spacing
-            }
-            subview.place(at: origin, proposal: ProposedViewSize(size))
-            origin.x += size.width + spacing
-        }
     }
 }
 

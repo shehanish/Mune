@@ -9,52 +9,79 @@ import SwiftUI
 import Combine
 
 struct CounterView: View {
-    @State private var isTrackerActive = false
+    var showsDismissButton: Bool = false
+
+    @Environment(\.dismiss) private var dismiss
+
+    @AppStorage(NoContactTracker.isActiveKey) private var isTrackerActive = false
+    @AppStorage(NoContactTracker.startDateKey) private var startDateInterval: Double = 0
+    @AppStorage(NoContactTracker.goalKey) private var storedGoal: String = ""
+
     @State private var showSetupSheet = false
-    
-    // Details for tracker
     @State private var selectedDate: Date = .now
     @State private var selectedPeriod: String?
-    
+
+    private var startDate: Date {
+        NoContactTracker.startDate(from: startDateInterval) ?? .now
+    }
+
     var body: some View {
-        ZStack {
-            Color.appBackgroundGradient
-            if isTrackerActive {
-                ActiveTrackerView(startDate: selectedDate, goal: selectedPeriod) {
-                    isTrackerActive = false
-                    selectedPeriod = nil
-                }
-                .padding(.horizontal)
-            } else {
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: 30) {
-                        BlobAvatarView(width: 170, height: 120)
+        NavigationStack {
+            ZStack {
+                Color.appBackgroundGradient
+                    .ignoresSafeArea()
 
-                        Text("Ready to take a step back?")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundStyle(Color.textOnPrimary)
+                if isTrackerActive {
+                    ActiveTrackerView(startDate: startDate, goal: storedGoal.isEmpty ? nil : storedGoal) {
+                        NoContactTracker.reset()
+                        selectedPeriod = nil
+                        selectedDate = .now
+                    }
+                    .padding(.horizontal)
+                } else {
+                    ScrollView(showsIndicators: false) {
+                        VStack(spacing: 30) {
+                            BlobAvatarView(width: 170, height: 120)
 
-                        Text("Starting no contact gives you space to heal and refocus on yourself.")
-                            .font(.body)
-                            .multilineTextAlignment(.center)
-                            .foregroundStyle(Color.textOnPrimary.opacity(0.8))
-                            .padding(.horizontal, 30)
-
-                        Button(action: {
-                            showSetupSheet = true
-                        }) {
-                            Text("Start Go For No Contact")
-                                .font(.headline)
+                            Text("Ready for a little space?")
+                                .font(.title2)
                                 .fontWeight(.bold)
-                                .foregroundStyle(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.brandPrimary)
-                                .clipShape(RoundedRectangle(cornerRadius: 16))
+                                .foregroundStyle(Color.textOnPrimary)
+
+                            Text("No contact can give you quiet room to heal and come back to yourself.")
+                                .font(.body)
+                                .multilineTextAlignment(.center)
+                                .foregroundStyle(Color.textOnPrimary.opacity(0.8))
+                                .padding(.horizontal, 30)
+
+                            Button(action: {
+                                selectedDate = .now
+                                selectedPeriod = nil
+                                showSetupSheet = true
+                            }) {
+                                Text("Begin no contact gently")
+                                    .font(.headline)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.brandFill)
+                                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                            }
+                            .padding(.horizontal, 40)
+                            .padding(.top, 20)
                         }
-                        .padding(.horizontal, 40)
-                        .padding(.top, 20)
+                        .padding(.top, 24)
+                    }
+                }
+            }
+            .toolbar {
+                if showsDismissButton {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Done") {
+                            dismiss()
+                        }
+                        .fontWeight(.semibold)
                     }
                 }
             }
@@ -64,17 +91,22 @@ struct CounterView: View {
                 selectedDate: $selectedDate,
                 selectedPeriod: $selectedPeriod,
                 onSave: {
-                    isTrackerActive = true
+                    let goal = selectedPeriod ?? NoContactTracker.defaultGoal
+                    NoContactTracker.activate(startDate: selectedDate, goal: goal)
                     showSetupSheet = false
                 }
             )
             .presentationDetents([.fraction(0.6), .large])
             .presentationDragIndicator(.visible)
         }
+        .onAppear {
+            if isTrackerActive, let savedDate = NoContactTracker.startDate(from: startDateInterval) {
+                selectedDate = savedDate
+                selectedPeriod = storedGoal.isEmpty ? NoContactTracker.defaultGoal : storedGoal
+            }
+        }
     }
 }
-
-
 
 #Preview {
     CounterView()

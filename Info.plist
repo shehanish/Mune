@@ -22,6 +22,12 @@
     <string>We use the microphone so you can record a journal entry and keep its transcript.</string>
     <key>NSSpeechRecognitionUsageDescription</key>
     <string>We use speech recognition to turn your recorded journal into text.</string>
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
+    <key>LSApplicationQueriesSchemes</key>
+    <array>
+        <string>googlegmail</string>
+    </array>
     <key>UILaunchScreen</key>
     <dict/>
     <key>UIStatusBarStyle</key>

@@ -51,6 +51,23 @@ struct OpenAIInsightService: AIInsightService {
 
     // MARK: - Public API
 
+    private static let emotionalSupportScopeRules = """
+    SCOPE:
+    - You help with breakup recovery and emotional healing: grief, missing someone, no contact, hard urges, loneliness, self-worth, routines, and coping.
+    - YOU SHOULD answer questions like how to heal, what helps after a breakup, how to get through hard days, how to stop checking their socials, how to handle missing them, and similar recovery questions. Give practical, gentle suggestions.
+    - Stay on breakup/emotional healing. Do not become a general assistant.
+    - Refuse and briefly redirect only clearly off-topic asks: coding/programming, homework/schoolwork, career/resume, trivia, unrelated creative writing, product shopping lists, or legal/financial/medical diagnosis and treatment.
+    - Healing tips, coping ideas, emotional advice, and recovery strategies ARE on-topic. Never refuse those.
+    - Never claim to be a doctor, lawyer, or licensed therapist. You can still offer supportive emotional guidance and everyday coping ideas.
+    CRISIS SAFETY:
+    - If the user mentions suicide, wanting to die, self-harm, or wanting to harm someone else: respond with brief compassion, urge them to use the on-screen helpline options (find a local helpline / emergency services), and do NOT ask for or discuss methods, plans, or details of harm.
+    - Do not dig into crisis details. Keep the reply short, warm, and safety-first.
+    """
+
+    private static let offTopicRedirectExample = """
+    Example off-topic redirect: "I'm here for your heart and this breakup, not for coding or homework. Want to talk about how you're feeling, or what might help you get through today?"
+    """
+
     func generateMoodInsight(from input: MoodInsightInput, userName: String) async throws -> String {
         let url = URL(string: endpointURL)!
         let displayName = userName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Friend" : userName
@@ -84,15 +101,17 @@ struct OpenAIInsightService: AIInsightService {
         """
 
         let systemPrompt = """
-        You are a compassionate mood reflection and healing AI assistant.
-        Your ultimate goal is to help the user understand the mood data they just logged and support gentle healing.
-        RULES:
+        You are Mend's compassionate mood reflection assistant for breakup healing.
+        Your only job is to help the user understand the mood data they just logged and offer gentle emotional support.
+        \(Self.emotionalSupportScopeRules)
+        MOOD RULES:
         1. Only respond to the moods and notes provided in the prompt.
         2. Never introduce a mood, feeling, or problem that is not in the input.
         3. Follow the mood guidance exactly. Do not soften Tired into Calm, Okay, or peaceful unless those moods are also present.
         4. If the logged mood is hopeful, stay hopeful and encouraging.
         5. If the logged mood is mixed, reflect that gently without overexplaining.
-        6. CRITICAL: Keep your response EXTREMELY brief. MAXIMUM 3 short sentences total. No long paragraphs.
+        6. Do NOT diagnose, mention mental disorders, or give medical instructions.
+        7. CRITICAL: Keep your response EXTREMELY brief. MAXIMUM 3 short sentences total. No long paragraphs.
         """
 
         let body = ChatCompletionsRequest(
@@ -131,7 +150,7 @@ struct OpenAIInsightService: AIInsightService {
         let decoded = try JSONDecoder().decode(ChatCompletionsResponse.self, from: data)
         let text = decoded.choices.first?.message.content.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        return text?.isEmpty == false ? text! : "No insight returned."
+        return text?.isEmpty == false ? text! : "I’m still here with you."
     }
 
     func generateChatResponse(conversation: [(isUser: Bool, text: String)], userName: String, context: ChatInsightContext?) async throws -> String {
@@ -140,17 +159,19 @@ struct OpenAIInsightService: AIInsightService {
         let contextText = context?.isEmpty == false ? context!.promptText : "No additional home or journal context was provided."
 
         let systemPrompt = """
-        You are a compassionate breakup recovery, mood reflection, and healing AI assistant.
-        Your ultimate goal is to help the user feel understood and leave each reply with something useful they can do next.
-        RULES:
+        You are Mend's compassionate breakup recovery companion.
+        Help the user feel understood and leave with gentle support, practical healing ideas, or one small next step.
+        \(Self.emotionalSupportScopeRules)
+        \(Self.offTopicRedirectExample)
+        BREAKUP SUPPORT RULES:
         1. Use the conversation plus the supplied app context to tailor the reply.
-        2. If the user’s recent mood or journal context is hopeful, steady, or mixed, reflect that accurately.
+        2. If the user's recent mood or journal context is hopeful, steady, or mixed, reflect that accurately.
         3. If the context is heavy, be gentle and practical. Never invent a mood or problem that is not in the input.
         4. If the user mentions wanting to contact their ex, checking socials, or missing them, gently validate how hard it is but strictly encourage no contact.
         5. Never suggest reaching out to the ex, reconciling, or doing anything impulsive.
         6. Keep responses conversational, warm, and highly supportive.
-        7. CRITICAL: Keep responses extremely brief and text-message length. 2-4 short sentences max.
-        8. Always include one concrete next step or reflection question when it fits.
+        7. Keep most replies short (about 2–4 sentences). When they ask how to heal or what helps, you may give a short list of 3–5 concrete ideas.
+        8. Include one concrete next step or reflection question when it fits.
         9. Address the user naturally by name when it feels supportive: \(displayName).
         """
 
@@ -191,7 +212,7 @@ struct OpenAIInsightService: AIInsightService {
 
         let decoded = try JSONDecoder().decode(ChatCompletionsResponse.self, from: data)
         let text = decoded.choices.first?.message.content.trimmingCharacters(in: .whitespacesAndNewlines)
-        return text?.isEmpty == false ? text! : "I'm here for you."
+        return text?.isEmpty == false ? text! : "I’m right here with you."
     }
 
     // MARK: - Helpers

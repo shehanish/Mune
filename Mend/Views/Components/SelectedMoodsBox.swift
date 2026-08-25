@@ -15,29 +15,25 @@ struct SelectedMoodsBox: View {
         VStack(alignment: .center, spacing: 10) {
             
             if selectedMoods.isEmpty {
-                Text("Pick one or more feelings above.")
+                Text("Choose any feelings that fit. There’s no wrong answer.")
                     .font(.footnote)
                     .foregroundStyle(Color.brandPrimary.opacity(0.6))
             } else {
-                // Horizontal wrap-ish: will line-break naturally on iOS 16+ using Grid
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 90), spacing: 8)], spacing: 2) {
+                ChipFlowLayout(spacing: 8) {
                     ForEach(selectedMoods, id: \.self) { mood in
                         Text(mood)
-                            .font(.footnote)
-                            .padding(.vertical, 6)
-                            .padding(.horizontal, 10)
-                            .background(Color.sageGreen.opacity(1.0))
-                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                            
+                            .font(.footnote.weight(.medium))
+                            .foregroundStyle(Color.brandPrimary)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 7)
+                            .background(Color.sageGreen.opacity(0.35), in: Capsule(style: .continuous))
                     }
-                    
                 }
             }
         }
-        
         .padding(14)
-        .background(.white.opacity(0.55))
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .frame(maxWidth: .infinity)
+        .background(Color.cardSurfaceMuted, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 }
 

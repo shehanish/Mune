@@ -6,39 +6,60 @@
 import SwiftUI
 
 struct BreathingCircleView: View {
-    @State private var isBreathing = false
-    
+    @State private var scale: CGFloat = 0.6
+    @State private var isInhaling = true
+
+    private let outerSize: CGFloat = 240
+    private let middleSize: CGFloat = 180
+    private let innerSize: CGFloat = 80
+    private let breathDuration: TimeInterval = 4.5
+    private let labelFade: TimeInterval = 1.1
+
     var body: some View {
-        ZStack(alignment: .center) {
+        ZStack {
             Circle()
                 .fill(Color.sageGreen.opacity(0.2))
-                .frame(width: isBreathing ? 240 : 120, height: isBreathing ? 240 : 120)
-                .animation(.easeInOut(duration: 6.5).repeatForever(autoreverses: true), value: isBreathing)
-            
+                .frame(width: outerSize, height: outerSize)
+
             Circle()
                 .fill(Color.sageGreen.opacity(0.4))
-                .frame(width: isBreathing ? 180 : 90, height: isBreathing ? 180 : 90)
-                .animation(.easeInOut(duration: 6.5).repeatForever(autoreverses: true), value: isBreathing)
-            
+                .frame(width: middleSize, height: middleSize)
+
             Circle()
                 .fill(Color.sageGreen)
-                .frame(width: 80, height: 80)
-            
+                .frame(width: innerSize, height: innerSize)
+
             ZStack {
                 Text("Inhale")
-                    .opacity(isBreathing ? 0 : 1)
+                    .opacity(isInhaling ? 1 : 0)
+                    .scaleEffect(isInhaling ? 1 : 0.92)
 
                 Text("Exhale")
-                    .opacity(isBreathing ? 1 : 0)
+                    .opacity(isInhaling ? 0 : 1)
+                    .scaleEffect(isInhaling ? 0.92 : 1)
             }
-            .font(.subheadline.bold())
-            .foregroundColor(.white)
-            .frame(width: 70, height: 24, alignment: .center)
-            .animation(.easeInOut(duration: 6.5).repeatForever(autoreverses: true), value: isBreathing)
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(.white)
+            .animation(.easeInOut(duration: labelFade), value: isInhaling)
         }
-        .frame(height: 250)
-        .onAppear {
-            isBreathing.toggle()
+        .scaleEffect(scale, anchor: .center)
+        .frame(width: outerSize, height: outerSize)
+        .frame(maxWidth: .infinity)
+        .task {
+            scale = 0.6
+            isInhaling = true
+
+            withAnimation(.easeInOut(duration: breathDuration).repeatForever(autoreverses: true)) {
+                scale = 1.0
+            }
+
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(breathDuration))
+                guard !Task.isCancelled else { break }
+                withAnimation(.easeInOut(duration: labelFade)) {
+                    isInhaling.toggle()
+                }
+            }
         }
     }
 }
@@ -103,7 +124,7 @@ struct ResourceButton: View {
                     .foregroundColor(color.opacity(0.5))
             }
             .padding()
-            .background(Color.white.opacity(0.85))
+            .background(Color.fieldSurface)
             .clipShape(RoundedRectangle(cornerRadius: 16))
         }
         .buttonStyle(.plain)
@@ -114,4 +135,35 @@ struct DoodleLine {
     var points: [CGPoint]
     var color: Color
     var lineWidth: CGFloat
+}
+
+struct DoodleCanvasView: View {
+    let lines: [DoodleLine]
+    var sourceSize: CGSize?
+    var lineColor: Color = .sageGreen
+    var lineWidthScale: CGFloat = 1
+
+    var body: some View {
+        GeometryReader { geometry in
+            Canvas { context, size in
+                let scaleX = sourceSize.map { size.width / max($0.width, 1) } ?? 1
+                let scaleY = sourceSize.map { size.height / max($0.height, 1) } ?? 1
+
+                for line in lines {
+                    guard line.points.count > 1 else { continue }
+
+                    var path = Path()
+                    let scaledPoints = line.points.map { point in
+                        CGPoint(x: point.x * scaleX, y: point.y * scaleY)
+                    }
+                    path.addLines(scaledPoints)
+                    context.stroke(
+                        path,
+                        with: .color(lineColor),
+                        lineWidth: line.lineWidth * lineWidthScale * min(scaleX, scaleY)
+                    )
+                }
+            }
+        }
+    }
 }

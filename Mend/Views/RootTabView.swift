@@ -11,14 +11,18 @@ import SwiftData
 struct RootTabView: View {
     @Environment(\.modelContext) private var modelContext
     @AppStorage("userName") private var userName = "Friend"
+    @AppStorage("activeProfileID") private var activeProfileID = ""
     @State private var selectedTab: Int = 0
 
     // Keep VMs in State so they are only created once and don't leak memory on re-renders
     @State private var homeVM: HomeViewModel?
     @State private var chatVM: ChatViewModel?
     @State private var journalVM: JournalViewModel?
+    @State private var boundProfileID: String = ""
 
-    private let userID = "app-user"
+    private var userID: String {
+        activeProfileID.isEmpty ? LocalProfileStore.legacyUserID : activeProfileID
+    }
 
     var body: some View {
         
@@ -48,19 +52,33 @@ struct RootTabView: View {
                         .tag(3)
                 }
                 .tint(Color.brandPrimary)
+                .toolbarBackground(.ultraThinMaterial, for: .tabBar)
             } else {
                 ProgressView() // Show loading until VMs initialize
             }
         }
         .onAppear {
-            setupViewModels()
+            LocalProfileStore.migrateLegacyIfNeeded()
+            setupViewModels(force: false)
+        }
+        .onChange(of: activeProfileID) { _, newID in
+            guard !newID.isEmpty, newID != boundProfileID else { return }
+            setupViewModels(force: true)
+        }
+        .onChange(of: userName) { _, newName in
+            // Keep the active profile display name in sync when edited from Profile.
+            guard !activeProfileID.isEmpty else { return }
+            LocalProfileStore.updateDisplayName(newName, for: activeProfileID)
+            homeVM = nil
+            chatVM = nil
+            journalVM = nil
+            setupViewModels(force: true)
         }
     }
     
-    private func setupViewModels() {
-        // Only initialize once to prevent memory leaks
-        guard homeVM == nil else { return }
-        
+    private func setupViewModels(force: Bool) {
+        if !force, homeVM != nil, boundProfileID == userID { return }
+
         let moodRepo = SwiftDataMoodRepository(context: modelContext)
         let aiService: any AIInsightService = OpenAIInsightService(
             apiKey: AppConfig.useDirectAuth ? AppConfig.apiKey : "",
@@ -87,6 +105,8 @@ struct RootTabView: View {
                 return chatContext(homeVM: homeVM, journalVM: journalVM)
             }
         )
+
+        boundProfileID = userID
     }
 
     private func chatContext(homeVM: HomeViewModel, journalVM: JournalViewModel) -> ChatInsightContext {
@@ -142,7 +162,7 @@ struct RootTabView: View {
 // MARK: - Stub AI service (safe until you wire OpenAI key)
 private struct PreviewAIInsightService: AIInsightService {
     func generateMoodInsight(from input: MoodInsightInput, userName: String) async throws -> String {
-        "You're making progress—log a mood to see insights."
+        "You're making progress. Log a mood to see insights."
     }
     func generateChatResponse(conversation: [(isUser: Bool, text: String)], userName: String, context: ChatInsightContext?) async throws -> String {
         "I'm here for you. Take things one day at a time."

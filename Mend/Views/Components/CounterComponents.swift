@@ -1,6 +1,151 @@
 import SwiftUI
 import Combine
 
+enum NoContactTracker {
+    /// Session keys used while a profile is active (shared AppStorage).
+    static let isActiveKey = "noContactIsActive"
+    static let startDateKey = "noContactStartDate"
+    static let goalKey = "noContactGoal"
+
+    /// Legacy unscoped keys (pre multi-profile).
+    static let legacyIsActiveKey = "noContactIsActive"
+    static let legacyStartDateKey = "noContactStartDate"
+    static let legacyGoalKey = "noContactGoal"
+
+    static let defaultGoal = "Unlimited / Not Decided"
+
+    static func isActiveKey(for profileID: String) -> String { "noContactIsActive.\(profileID)" }
+    static func startDateKey(for profileID: String) -> String { "noContactStartDate.\(profileID)" }
+    static func goalKey(for profileID: String) -> String { "noContactGoal.\(profileID)" }
+
+    static func daysElapsed(since startDate: Date, to now: Date = .now) -> Int {
+        let components = Calendar.current.dateComponents([.day], from: startDate, to: now)
+        return max(0, components.day ?? 0)
+    }
+
+    static func startDate(from interval: Double) -> Date? {
+        interval > 0 ? Date(timeIntervalSince1970: interval) : nil
+    }
+
+    static func activate(startDate: Date, goal: String) {
+        let defaults = UserDefaults.standard
+        defaults.set(true, forKey: isActiveKey)
+        defaults.set(startDate.timeIntervalSince1970, forKey: startDateKey)
+        defaults.set(goal, forKey: goalKey)
+
+        let profileID = LocalProfileStore.activeProfileID
+        if !profileID.isEmpty {
+            persistSessionIntoScoped(for: profileID)
+        }
+    }
+
+    static func reset() {
+        clearSessionKeys()
+        let profileID = LocalProfileStore.activeProfileID
+        if !profileID.isEmpty {
+            persistSessionIntoScoped(for: profileID)
+        }
+    }
+
+    static func clearSessionKeys() {
+        let defaults = UserDefaults.standard
+        defaults.set(false, forKey: isActiveKey)
+        defaults.set(0.0, forKey: startDateKey)
+        defaults.set("", forKey: goalKey)
+    }
+
+    static func persistSessionIntoScoped(for profileID: String) {
+        guard !profileID.isEmpty else { return }
+        let defaults = UserDefaults.standard
+        defaults.set(defaults.bool(forKey: isActiveKey), forKey: isActiveKey(for: profileID))
+        defaults.set(defaults.double(forKey: startDateKey), forKey: startDateKey(for: profileID))
+        defaults.set(defaults.string(forKey: goalKey) ?? "", forKey: goalKey(for: profileID))
+    }
+
+    static func loadScopedIntoSession(for profileID: String) {
+        guard !profileID.isEmpty else {
+            clearSessionKeys()
+            return
+        }
+        let defaults = UserDefaults.standard
+        defaults.set(defaults.bool(forKey: isActiveKey(for: profileID)), forKey: isActiveKey)
+        defaults.set(defaults.double(forKey: startDateKey(for: profileID)), forKey: startDateKey)
+        defaults.set(defaults.string(forKey: goalKey(for: profileID)) ?? "", forKey: goalKey)
+    }
+
+    /// Copy old global keys into a profile bucket once (values already live in session keys).
+    static func migrateLegacyKeysIfNeeded(into profileID: String) {
+        let defaults = UserDefaults.standard
+        let scopedActive = isActiveKey(for: profileID)
+        guard defaults.object(forKey: scopedActive) == nil else { return }
+
+        defaults.set(defaults.bool(forKey: legacyIsActiveKey), forKey: scopedActive)
+        defaults.set(defaults.double(forKey: legacyStartDateKey), forKey: startDateKey(for: profileID))
+        defaults.set(defaults.string(forKey: legacyGoalKey) ?? "", forKey: goalKey(for: profileID))
+    }
+}
+
+struct NoContactHomeCard: View {
+    let isActive: Bool
+    let daysElapsed: Int
+    let goal: String
+    let onTap: () -> Void
+
+    private var subtitle: String {
+        if isActive {
+            if goal.isEmpty || goal.contains("Unlimited") || goal.contains("Not Decided") {
+                return daysElapsed == 1 ? "1 day strong. Tap to view" : "\(daysElapsed) days strong. Tap to view"
+            }
+            return "Goal: \(goal). Tap when you’d like to look"
+        }
+        return "Track your days with kindness when you’re ready"
+    }
+
+    var body: some View {
+        Button(action: onTap) {
+            HStack(spacing: 14) {
+                Image(systemName: "leaf.fill")
+                    .font(.title2)
+                    .foregroundStyle(Color.brandPrimary)
+                    .frame(width: 44, height: 44)
+                    .background(Color.brandPrimary.opacity(0.12))
+                    .clipShape(Circle())
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("No Contact")
+                        .font(.headline)
+                        .foregroundStyle(Color.brandPrimary)
+
+                    Text(subtitle)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.leading)
+                }
+
+                Spacer()
+
+                if isActive {
+                    Text("\(daysElapsed)")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundStyle(Color.sageGreen)
+                        .monospacedDigit()
+                }
+
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Color.brandPrimary.opacity(0.45))
+            }
+            .padding(18)
+            .background(Color.cardGradient)
+            .clipShape(RoundedRectangle(cornerRadius: 26))
+            .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 4)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(isActive ? "No contact, \(daysElapsed) days" : "Start no contact tracker")
+        .accessibilityHint("Opens no contact tracker")
+    }
+}
+
 struct NoContactSetupSheet: View {
     @Binding var selectedDate: Date
     @Binding var selectedPeriod: String?
@@ -23,14 +168,14 @@ struct NoContactSetupSheet: View {
                 
                 ScrollView {
                     VStack(spacing: 25) {
-                        Text("Set Up No Contact")
+                        Text("Set up no contact")
                             .font(.title2)
                             .fontWeight(.bold)
                             .foregroundStyle(Color.textOnPrimary)
                             .padding(.top, 20)
 
                         VStack(alignment: .leading, spacing: 10) {
-                            Text("When did you start?")
+                            Text("When did you begin?")
                                 .font(.subheadline)
                                 .foregroundStyle(Color.textOnPrimary.opacity(0.8))
                                 .padding(.horizontal, 20)
@@ -42,14 +187,14 @@ struct NoContactSetupSheet: View {
                             )
                             .datePickerStyle(.compact)
                             .padding()
-                            .background(.white.opacity(0.8))
+                            .background(Color.fieldSurface)
                             .clipShape(RoundedRectangle(cornerRadius: 16))
                             .padding(.horizontal)
                         }
 
                         DropDownView(
-                            title: "How long is your goal?",
-                            prompt: "Select duration",
+                            title: "How long feels right for now?",
+                            prompt: "Choose a length",
                             options: periodOptions,
                             selection: $selectedPeriod
                         )
@@ -57,7 +202,7 @@ struct NoContactSetupSheet: View {
 
                         if selectedPeriod == "Custom" {
                             VStack(alignment: .leading, spacing: 10) {
-                                Text("Enter number of days")
+                                Text("How many days?")
                                     .font(.subheadline)
                                     .foregroundStyle(Color.textOnPrimary.opacity(0.8))
                                     .padding(.horizontal, 20)
@@ -65,10 +210,9 @@ struct NoContactSetupSheet: View {
                                 TextField("e.g. 14", text: $customDays)
                                     .keyboardType(.numberPad)
                                     .padding()
-                                    .background(.white.opacity(0.8))
+                                    .background(Color.fieldSurface)
                                     .clipShape(RoundedRectangle(cornerRadius: 16))
-                                    .environment(\.colorScheme, .light)
-                                    .padding(.horizontal)
+                                                                        .padding(.horizontal)
                             }
                             .transition(.opacity.combined(with: .move(edge: .top)))
                         }
@@ -81,7 +225,7 @@ struct NoContactSetupSheet: View {
                             }
                             onSave()
                         }) {
-                            Text("Save and Start")
+                            Text("Save and begin")
                                 .font(.headline)
                                 .fontWeight(.bold)
                                 .foregroundStyle(.white)
@@ -97,14 +241,6 @@ struct NoContactSetupSheet: View {
                     .animation(.snappy, value: selectedPeriod)
                 }
                 .scrollDismissesKeyboard(.interactively)
-            }
-            .toolbar {
-                ToolbarItemGroup(placement: .keyboard) {
-                    Spacer()
-                    Button("Done") {
-                        dismissKeyboard()
-                    }
-                }
             }
         }
     }
@@ -143,7 +279,7 @@ struct ActiveTrackerView: View {
     
     var body: some View {
         VStack(spacing: 40) {
-            Text("No Contact Journey")
+            Text("Your no-contact journey")
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(Color.textOnPrimary)
@@ -164,11 +300,11 @@ struct ActiveTrackerView: View {
                 VStack(spacing: 8) {
                     Text("\(daysElapsed)")
                         .font(.system(size: 60, weight: .bold, design: .rounded))
-                        .foregroundColor(Color.darkCharcoal)
+                        .foregroundColor(Color.brandPrimary)
                     
-                    Text("Days since no contact")
+                    Text("Days of gentle distance")
                         .font(.headline)
-                        .foregroundColor(Color.darkCharcoal.opacity(0.8))
+                        .foregroundColor(Color.brandPrimary.opacity(0.8))
                         .multilineTextAlignment(.center)
                         .padding(.horizontal)
                     
@@ -176,12 +312,12 @@ struct ActiveTrackerView: View {
                         Text("Goal: \(Int(goalDays)) Days")
                             .font(.caption)
                             .padding(.top, 4)
-                            .foregroundColor(Color.darkCharcoal.opacity(0.7))
+                            .foregroundColor(Color.brandPrimary.opacity(0.7))
                     } else {
-                        Text("Goal: Unlimited")
+                        Text("Goal: Open-ended")
                             .font(.caption)
                             .padding(.top, 4)
-                            .foregroundColor(Color.darkCharcoal.opacity(0.7))
+                            .foregroundColor(Color.brandPrimary.opacity(0.7))
                     }
                 }
             }
@@ -196,7 +332,7 @@ struct ActiveTrackerView: View {
             .background(Color.sageGreen.opacity(0.2))
             .clipShape(RoundedRectangle(cornerRadius: 16))
             
-            Button("Reset Tracker") {
+            Button("Reset and start fresh") {
                 onReset()
             }
             .font(.headline)
@@ -216,10 +352,10 @@ struct ActiveTrackerView: View {
             Text(String(format: "%02d", max(0, value)))
                 .font(.title2)
                 .fontWeight(.bold)
-                .foregroundColor(Color.darkCharcoal)
+                .foregroundColor(Color.brandPrimary)
             Text(title)
                 .font(.caption)
-                .foregroundColor(Color.darkCharcoal.opacity(0.8))
+                .foregroundColor(Color.brandPrimary.opacity(0.8))
         }
         .frame(width: 60)
     }

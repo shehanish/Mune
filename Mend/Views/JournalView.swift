@@ -16,6 +16,14 @@ struct JournalView: View {
     @State private var isSelectingHistoryEntries: Bool = false
     @State private var selectedMoodEntryKeys: Set<String> = []
     @State private var selectedJournalEntryKeys: Set<String> = []
+    @FocusState private var focusedField: JournalField?
+
+    private enum JournalField: Hashable {
+        case journal
+        case gratitudeOne
+        case gratitudeTwo
+        case gratitudeThree
+    }
 
     init(vm: JournalViewModel) {
         _vm = State(initialValue: vm)
@@ -26,35 +34,41 @@ struct JournalView: View {
             Color.appBackgroundGradient
                 .ignoresSafeArea()
 
-            ScrollView {
-                VStack(spacing: 16) {
-                    moodCheckInsCard
-                    header
-                    recordCard
-                    writtenJournalCard
-                    gratitudesCard
-                    saveButton
-                    statusCard
-                    historyCard
-                    dashboardCard
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(spacing: 16) {
+                        moodCheckInsCard
+                        header
+                        recordCard
+                        writtenJournalCard
+                        saveButton
+                        gratitudesCard
+                        saveButton
+                        statusCard
+                        historyCard
+                        dashboardCard
+                    }
+                    .padding()
                 }
-                .padding()
+                .scrollDismissesKeyboard(.interactively)
+                .safeAreaInset(edge: .bottom) {
+                    Color.clear.frame(height: 90)
+                }
+                .onChange(of: focusedField) { _, field in
+                    guard let field else { return }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                        withAnimation(.easeOut(duration: 0.25)) {
+                            proxy.scrollTo(field, anchor: .center)
+                        }
+                    }
+                }
             }
         }
-        .scrollDismissesKeyboard(.interactively)
         .onAppear {
             Task { await vm.loadHistory() }
         }
         .onReceive(NotificationCenter.default.publisher(for: .journalEntriesDidChange)) { _ in
             Task { await vm.loadHistory() }
-        }
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button("Done") {
-                    dismissKeyboard()
-                }
-            }
         }
     }
 
@@ -87,7 +101,7 @@ struct JournalView: View {
                 }
 
                 if vm.moodEntries.isEmpty {
-                    Text("Your home check-ins will appear here.")
+                    Text("When you check in on Home, those feelings will gently gather here.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .padding(.top, 4)
@@ -101,18 +115,13 @@ struct JournalView: View {
             }
             .padding(.top, 12)
         } label: {
-            HStack {
-                Text("Mood Check-Ins")
-                    .font(.headline)
-                    .foregroundStyle(Color.brandPrimary)
-                Spacer()
-                Image(systemName: showMoodEntries ? "chevron.up" : "chevron.down")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-            }
+            Text("Feelings you’ve shared")
+                .font(.headline)
+                .foregroundStyle(Color.brandPrimary)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(18)
-        .background(.white.opacity(0.75))
+        .background(Color.cardSurfaceSoft)
         .clipShape(RoundedRectangle(cornerRadius: 24))
     }
 
@@ -122,37 +131,21 @@ struct JournalView: View {
                 .font(.headline)
                 .foregroundStyle(Color.brandPrimary)
 
-            Text(vm.healingDashboard.moodTrend)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-
-            HStack(spacing: 12) {
-                metricCard(title: "Check-ins", value: "\(vm.healingDashboard.weeklyCheckIns)")
-                metricCard(title: "Gratitude days", value: "\(vm.healingDashboard.gratitudeDays)")
-            }
-
-            if let dominantMood = vm.healingDashboard.dominantMood {
-                Text("Most common mood: \(dominantMood)")
-                    .font(.footnote)
+            if vm.healingDashboard.weeklyCheckIns > 0 {
+                Text(vm.healingDashboard.moodTrend)
+                    .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
 
-            if !vm.healingDashboard.themes.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Common themes")
-                        .font(.caption.bold())
-                        .foregroundStyle(.secondary)
+            HStack(spacing: 12) {
+                metricCard(title: "Moments you checked in", value: "\(vm.healingDashboard.weeklyCheckIns)")
+                metricCard(title: "Days with gratitude", value: "\(vm.healingDashboard.gratitudeDays)")
+            }
 
-                    FlowLayout(items: vm.healingDashboard.themes) { theme in
-                        Text(theme)
-                            .font(.footnote.weight(.medium))
-                            .foregroundStyle(Color.brandPrimary)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
-                            .background(Color.brandPrimary.opacity(0.12))
-                            .clipShape(Capsule())
-                    }
-                }
+            if let dominantMood = vm.healingDashboard.dominantMood {
+                Text("Feeling that showed up most: \(dominantMood)")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
 
             Text(vm.healingDashboard.supportMessage)
@@ -160,13 +153,7 @@ struct JournalView: View {
                 .foregroundStyle(.secondary)
         }
         .padding(18)
-        .background(
-            LinearGradient(
-                colors: [Color.white.opacity(0.92), Color.brandPrimary.opacity(0.08)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        )
+        .background(Color.cardGradient)
         .clipShape(RoundedRectangle(cornerRadius: 24))
     }
 
@@ -181,7 +168,7 @@ struct JournalView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(14)
-        .background(Color.white.opacity(0.9))
+        .background(Color.cardSurface)
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
@@ -191,23 +178,23 @@ struct JournalView: View {
                 .font(.largeTitle.bold())
                 .foregroundStyle(Color.brandPrimary)
 
-            Text("Process what you're feeling — write, speak, or both. This is your space to grieve and reflect.")
+            Text("A quiet place for what’s on your heart. Write, speak, or both. I’ll hold the space while you feel.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(20)
-        .background(.white.opacity(0.75))
+        .background(Color.cardSurfaceSoft)
         .clipShape(RoundedRectangle(cornerRadius: 24))
     }
 
     private var recordCard: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("Voice Journal")
+            Text("Speak it out")
                 .font(.headline)
                 .foregroundStyle(Color.brandPrimary)
 
-            Text(vm.isRecording ? "Listening… speak naturally. Words will appear in Daily Journal." : "Record a spoken journal entry. The transcript will appear in Daily Journal so you can edit it.")
+            Text(vm.isRecording ? "I’m listening… speak naturally. Your words will land softly in your journal." : "If writing feels hard, speak. I’ll turn your words into text so you can edit them gently.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
@@ -218,39 +205,69 @@ struct JournalView: View {
             } label: {
                 HStack {
                     Image(systemName: vm.isRecording ? "stop.circle.fill" : "mic.fill")
-                    Text(vm.isRecording ? "Stop Recording" : "Start Recording")
+                    Text(vm.isRecording ? "I’m done speaking" : "Start speaking")
                 }
                 .fontWeight(.semibold)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
-                .background(vm.isRecording ? Color.red.opacity(0.9) : Color.darkCharcoal)
+                .background(vm.isRecording ? Color.red.opacity(0.9) : Color.brandFill)
                 .foregroundStyle(.white)
                 .clipShape(RoundedRectangle(cornerRadius: 18))
             }
             .buttonStyle(.plain)
 
+            if let voiceStatusMessage = vm.voiceStatusMessage {
+                Label(voiceStatusMessage, systemImage: "exclamationmark.circle.fill")
+                    .font(.footnote)
+                    .foregroundStyle(Color.brandPrimary.opacity(0.85))
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityLabel(voiceStatusMessage)
+            }
+
             if vm.isTranscribing {
-                ProgressView("Adding transcript to your journal...")
+                ProgressView("Bringing your words into the journal…")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
         }
         .padding(18)
-        .background(.white.opacity(0.75))
+        .background(Color.cardSurfaceSoft)
         .clipShape(RoundedRectangle(cornerRadius: 24))
     }
 
     private var writtenJournalCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Daily Journal")
+            Text("Today’s pages")
                 .font(.headline)
                 .foregroundStyle(Color.brandPrimary)
 
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Gentle prompts")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Color.brandPrimary)
+
+                Text("Tap one when you need a starting place. Change every word. This is yours.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(JournalViewModel.breakupTemplates) { template in
+                            journalPromptChip(template)
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+                .scrollClipDisabled()
+            }
+
             TextEditor(text: $vm.journalText)
+                .focused($focusedField, equals: .journal)
                 .frame(minHeight: 160)
                 .padding(12)
                 .scrollContentBackground(.hidden)
-                .background(Color.white.opacity(0.85))
+                .background(Color.fieldSurface)
                 .clipShape(RoundedRectangle(cornerRadius: 18))
                 .overlay(
                     RoundedRectangle(cornerRadius: 18)
@@ -258,49 +275,73 @@ struct JournalView: View {
                 )
         }
         .padding(18)
-        .background(.white.opacity(0.75))
-        .clipShape(RoundedRectangle(cornerRadius: 24))
+        .background(Color.cardSurfaceSoft, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .id(JournalField.journal)
+    }
+
+    private func journalPromptChip(_ template: JournalViewModel.JournalTemplate) -> some View {
+        let isSelected = vm.selectedTemplateID == template.id
+
+        return Button {
+            vm.applyJournalTemplate(template)
+        } label: {
+            Text(template.title)
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(isSelected ? Color.buttonText : Color.brandPrimary)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 9)
+                .background(
+                    isSelected ? Color.brandFill : Color.brandPrimary.opacity(0.12),
+                    in: Capsule(style: .continuous)
+                )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(template.title)
+        .accessibilityHint("Adds this gentle journal prompt")
     }
 
     private var gratitudesCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Daily Gratitudes")
+            Text("Three soft gratitudes")
                 .font(.headline)
                 .foregroundStyle(Color.brandPrimary)
 
-            Text("Add at least three things you’re grateful for today.")
+            Text("When you can, name a few things, even tiny ones, that you’re grateful for today.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
-            gratitudeField(title: "Gratitude 1", text: $vm.gratitudeOne)
-            gratitudeField(title: "Gratitude 2", text: $vm.gratitudeTwo)
-            gratitudeField(title: "Gratitude 3", text: $vm.gratitudeThree)
+            gratitudeField(title: "Something I’m grateful for…", text: $vm.gratitudeOne, field: .gratitudeOne)
+            gratitudeField(title: "Another small kindness…", text: $vm.gratitudeTwo, field: .gratitudeTwo)
+            gratitudeField(title: "One more, if you have it…", text: $vm.gratitudeThree, field: .gratitudeThree)
         }
         .padding(18)
-        .background(.white.opacity(0.75))
+        .background(Color.cardSurfaceSoft)
         .clipShape(RoundedRectangle(cornerRadius: 24))
     }
 
-    private func gratitudeField(title: String, text: Binding<String>) -> some View {
+    private func gratitudeField(title: String, text: Binding<String>, field: JournalField) -> some View {
         TextField(title, text: text)
+            .focused($focusedField, equals: field)
             .padding(14)
-            .background(Color.white.opacity(0.85))
+            .background(Color.fieldSurface)
             .clipShape(RoundedRectangle(cornerRadius: 16))
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
                     .stroke(Color.brandPrimary.opacity(0.15), lineWidth: 1)
             )
+            .textInputAutocapitalization(.sentences)
+            .id(field)
     }
 
     private var saveButton: some View {
         Button {
             vm.saveJournalEntry()
         } label: {
-            Text("Save Journal Entry")
+            Text("Save this entry")
                 .fontWeight(.bold)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
-                .background(vm.canSaveEntry ? Color.brandPrimary : Color.brandPrimary.opacity(0.35))
+                .background(vm.canSaveEntry ? Color.brandFill : Color.brandFill.opacity(0.35))
                 .foregroundStyle(.white)
                 .clipShape(RoundedRectangle(cornerRadius: 18))
         }
@@ -348,12 +389,8 @@ struct JournalView: View {
                     }
                 }
 
-                Text(vm.debugHistoryMessage)
-                    .font(.caption2.monospaced())
-                    .foregroundStyle(.secondary)
-
                 if vm.moodEntries.isEmpty && vm.historyEntries.isEmpty {
-                    Text("Your saved entries will appear here.")
+                    Text("Your saved pages will gather here over time.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .padding(.top, 4)
@@ -361,7 +398,7 @@ struct JournalView: View {
                     LazyVStack(spacing: 12) {
                         if !vm.historyEntries.isEmpty {
                             VStack(alignment: .leading, spacing: 12) {
-                                Text("Journal Entries")
+                                Text("Your pages")
                                     .font(.caption.bold())
                                     .foregroundStyle(.secondary)
 
@@ -376,7 +413,7 @@ struct JournalView: View {
             .padding(.top, 12)
         } label: {
             HStack {
-                Text("Journal History")
+                Text("Earlier pages")
                     .font(.headline)
                     .foregroundStyle(Color.brandPrimary)
                 Spacer()
@@ -386,7 +423,7 @@ struct JournalView: View {
             }
         }
         .padding(18)
-        .background(.white.opacity(0.75))
+        .background(Color.cardSurfaceSoft)
         .clipShape(RoundedRectangle(cornerRadius: 24))
     }
 
@@ -444,7 +481,7 @@ struct JournalView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(14)
-        .background(Color.white.opacity(0.85))
+        .background(Color.fieldSurface)
         .clipShape(RoundedRectangle(cornerRadius: 18))
     }
 
@@ -529,7 +566,7 @@ struct JournalView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(14)
-        .background(Color.white.opacity(0.85))
+        .background(Color.fieldSurface)
         .clipShape(RoundedRectangle(cornerRadius: 18))
     }
 
@@ -551,29 +588,6 @@ struct JournalView: View {
         }
     }
 
-}
-
-private struct FlowLayout<Item: Hashable, Content: View>: View {
-    let items: [Item]
-    let content: (Item) -> Content
-
-    var body: some View {
-        FlexibleWrap(items: items, content: content)
-    }
-}
-
-private struct FlexibleWrap<Item: Hashable, Content: View>: View {
-    let items: [Item]
-    let content: (Item) -> Content
-
-    var body: some View {
-        let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
-        LazyVGrid(columns: columns, alignment: .leading, spacing: 8) {
-            ForEach(Array(items.enumerated()), id: \.offset) { _, item in
-                content(item)
-            }
-        }
-    }
 }
 
 #Preview {

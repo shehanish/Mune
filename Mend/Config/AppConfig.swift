@@ -15,7 +15,7 @@ enum AppConfig {
     // Leave empty once you deploy the Supabase proxy.
     static var apiKey: String {
         guard let rawKey = Bundle.main.object(forInfoDictionaryKey: "MYAPI_KEY") as? String else {
-            print("[AppConfig] Warning: MYAPI_KEY not found in Info.plist.")
+            MendLog.debug("[AppConfig] Warning: MYAPI_KEY not found in Info.plist.")
             return ""
         }
 
@@ -26,7 +26,7 @@ enum AppConfig {
         guard !key.isEmpty,
               !key.contains("put-your-key-here"),
               !key.contains("$(MYAPI_KEY)") else {
-            print("[AppConfig] Warning: MYAPI_KEY is missing or invalid ('\(key)'). AI features will be unavailable.")
+            MendLog.debug("[AppConfig] Warning: MYAPI_KEY is missing or invalid ('\(key)'). AI features will be unavailable.")
             return ""
         }
 
@@ -39,6 +39,9 @@ enum AppConfig {
     // Find it at: supabase.com → your project → Settings → General
     // ─────────────────────────────────────────────────────────────────────────
     static let proxyURL: String? = "https://mend-openai-proxy.shehani1207.workers.dev"
+
+    /// Inbox that receives in-app feedback.
+    static let feedbackEmail = "shehani1207@gmail.com"
 
     /// Full chat-completions URL the service will call.
     static var chatEndpointURL: String {

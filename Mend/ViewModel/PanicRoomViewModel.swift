@@ -7,70 +7,194 @@ import SwiftUI
 import Observation
 import AVFoundation
 
+struct SavedDrawing: Identifiable, Codable, Equatable {
+    let id: UUID
+    var name: String
+    var createdAt: Date
+    var canvasWidth: Double
+    var canvasHeight: Double
+    var lines: [PersistableDoodleLine]
+
+    init(
+        id: UUID = UUID(),
+        name: String,
+        createdAt: Date = .now,
+        canvasWidth: Double,
+        canvasHeight: Double,
+        lines: [PersistableDoodleLine]
+    ) {
+        self.id = id
+        self.name = name
+        self.createdAt = createdAt
+        self.canvasWidth = canvasWidth
+        self.canvasHeight = canvasHeight
+        self.lines = lines
+    }
+
+    var doodleLines: [DoodleLine] {
+        lines.map { line in
+            DoodleLine(
+                points: line.points.map { CGPoint(x: $0.x, y: $0.y) },
+                color: .sageGreen,
+                lineWidth: CGFloat(line.lineWidth)
+            )
+        }
+    }
+}
+
 @Observable
 class PanicRoomViewModel {
     var ventText = ""
     var doodleLines: [DoodleLine] = []
+    var savedDrawings: [SavedDrawing] = []
     var quoteIndex = 0
     var isPlayingMusic = false
     var showContactPicker = false
+    private var suppressPreferenceSideEffects = false
+
     var saveDrawingsEnabled: Bool {
         didSet {
+            guard !suppressPreferenceSideEffects else { return }
+            let profileID = Self.currentProfileID()
+            UserDefaults.standard.set(saveDrawingsEnabled, forKey: Self.enabledKey(for: profileID))
             UserDefaults.standard.set(saveDrawingsEnabled, forKey: Self.saveDrawingsEnabledKey)
             if saveDrawingsEnabled {
-                if doodleLines.isEmpty {
-                    doodleLines = Self.loadSavedDoodles()
-                } else {
-                    persistDoodlesIfNeeded()
-                }
+                loadSavedDrawings()
             } else {
-                clearSavedDoodles()
+                savedDrawings = []
+                clearSavedDrawingsFolder()
             }
         }
     }
 
-    private static let saveDrawingsEnabledKey = "saveDrawingsEnabled"
-    private static let savedDoodlesKey = "savedCalmSpaceDoodles"
+    static let saveDrawingsEnabledKey = "saveDrawingsEnabled"
+    static let savedDrawingsFolderKey = "savedCalmSpaceDrawingFolder"
+    private static let legacySavedDoodlesKey = "savedCalmSpaceDoodles"
+    private static let didMigrateToProfilesKey = "calmSpaceDrawings.didMigrateToProfiles.v1"
 
-    private let calmSoundName = "Nervous System Regulation (999 Hz) 1 hour handpan music Malte Marten - Malte Marten (128k)"
+    private let calmSoundName = "calm_music"
     private let calmSoundExtension = "mp3"
     private var audioPlayer: AVAudioPlayer?
-    
+
     let quotes = [
-        "The urge to text them will pass.",
-        "Missing them doesn't mean going back is right.",
-        "You're allowed to grieve and still move forward.",
-        "No contact is an act of self-respect.",
-        "Healing isn't linear — today still counts."
+        "The urge to text them will soften. Stay with me through this wave.",
+        "Missing them is human. That doesn’t mean you have to go back.",
+        "You’re allowed to grieve and still take one soft step forward.",
+        "No contact can be a quiet way of caring for yourself.",
+        "Healing isn’t linear. Showing up today still counts."
     ]
 
+    static func currentProfileID() -> String {
+        let id = LocalProfileStore.activeProfileID
+        return id.isEmpty ? LocalProfileStore.legacyUserID : id
+    }
+
+    static func enabledKey(for profileID: String) -> String {
+        "saveDrawingsEnabled.\(profileID)"
+    }
+
+    static func folderKey(for profileID: String) -> String {
+        "savedCalmSpaceDrawingFolder.\(profileID)"
+    }
+
+    static func migrateUnscopedDrawingsIfNeeded() {
+        guard !UserDefaults.standard.bool(forKey: didMigrateToProfilesKey) else { return }
+
+        let profiles = LocalProfileStore.allProfiles()
+        let targetID: String = {
+            if profiles.contains(where: { $0.id == LocalProfileStore.legacyUserID }) {
+                return LocalProfileStore.legacyUserID
+            }
+            if let first = profiles.first?.id {
+                return first
+            }
+            let active = LocalProfileStore.activeProfileID
+            return active.isEmpty ? LocalProfileStore.legacyUserID : active
+        }()
+
+        let scopedFolderKey = folderKey(for: targetID)
+        if UserDefaults.standard.data(forKey: scopedFolderKey) == nil,
+           let globalFolder = UserDefaults.standard.data(forKey: savedDrawingsFolderKey) {
+            UserDefaults.standard.set(globalFolder, forKey: scopedFolderKey)
+        }
+
+        if UserDefaults.standard.object(forKey: enabledKey(for: targetID)) == nil {
+            UserDefaults.standard.set(
+                UserDefaults.standard.bool(forKey: saveDrawingsEnabledKey),
+                forKey: enabledKey(for: targetID)
+            )
+        }
+
+        UserDefaults.standard.removeObject(forKey: savedDrawingsFolderKey)
+        UserDefaults.standard.set(true, forKey: didMigrateToProfilesKey)
+    }
+
+    static func clearDrawings(for profileID: String) {
+        UserDefaults.standard.removeObject(forKey: folderKey(for: profileID))
+        UserDefaults.standard.removeObject(forKey: legacySavedDoodlesKey)
+    }
+
     init() {
-        saveDrawingsEnabled = UserDefaults.standard.bool(forKey: Self.saveDrawingsEnabledKey)
+        Self.migrateUnscopedDrawingsIfNeeded()
+        let profileID = Self.currentProfileID()
+        suppressPreferenceSideEffects = true
+        if let stored = UserDefaults.standard.object(forKey: Self.enabledKey(for: profileID)) as? Bool {
+            saveDrawingsEnabled = stored
+        } else {
+            saveDrawingsEnabled = UserDefaults.standard.bool(forKey: Self.saveDrawingsEnabledKey)
+        }
+        suppressPreferenceSideEffects = false
         if saveDrawingsEnabled {
-            doodleLines = Self.loadSavedDoodles()
+            loadSavedDrawings()
         }
     }
-    
+
+    /// Reload drawings when switching profiles. Clears the live canvas and vent text.
+    func loadForActiveProfile() {
+        Self.migrateUnscopedDrawingsIfNeeded()
+        ventText = ""
+        doodleLines = []
+        quoteIndex = 0
+
+        let profileID = Self.currentProfileID()
+        let enabled: Bool
+        if let stored = UserDefaults.standard.object(forKey: Self.enabledKey(for: profileID)) as? Bool {
+            enabled = stored
+        } else {
+            enabled = UserDefaults.standard.bool(forKey: Self.saveDrawingsEnabledKey)
+        }
+
+        suppressPreferenceSideEffects = true
+        saveDrawingsEnabled = enabled
+        UserDefaults.standard.set(enabled, forKey: Self.enabledKey(for: profileID))
+        UserDefaults.standard.set(enabled, forKey: Self.saveDrawingsEnabledKey)
+        suppressPreferenceSideEffects = false
+
+        if enabled {
+            loadSavedDrawings()
+        } else {
+            savedDrawings = []
+        }
+    }
+
     var currentQuote: String {
         quotes[quoteIndex]
     }
-    
+
     func nextQuote() {
         quoteIndex = (quoteIndex + 1) % quotes.count
     }
-    
-    func clearDoodles() {
+
+    func clearCanvas() {
         doodleLines.removeAll()
-        persistDoodlesIfNeeded()
     }
 
     func clearVentText() {
         ventText = ""
     }
-    
+
     func addDoodlePoint(_ point: CGPoint, isNew: Bool) {
         if isNew {
-            persistDoodlesIfNeeded()
             doodleLines.append(DoodleLine(points: [point], color: .sageGreen, lineWidth: 5))
         } else {
             let index = doodleLines.count - 1
@@ -80,52 +204,107 @@ class PanicRoomViewModel {
         }
     }
 
-    func persistDoodlesIfNeeded() {
+    var canSaveCurrentDrawing: Bool {
+        saveDrawingsEnabled && doodleLines.contains { !$0.points.isEmpty }
+    }
+
+    @discardableResult
+    func saveCurrentDrawing(name: String, canvasSize: CGSize) -> Bool {
+        guard saveDrawingsEnabled else { return false }
+
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty, canSaveCurrentDrawing else { return false }
+
+        let payload = encodeLines(doodleLines)
+        let drawing = SavedDrawing(
+            name: trimmedName,
+            canvasWidth: Double(max(canvasSize.width, 1)),
+            canvasHeight: Double(max(canvasSize.height, 1)),
+            lines: payload
+        )
+
+        savedDrawings.insert(drawing, at: 0)
+        persistSavedDrawings()
+        return true
+    }
+
+    func deleteDrawing(id: UUID) {
+        savedDrawings.removeAll { $0.id == id }
+        persistSavedDrawings()
+    }
+
+    func renameDrawing(id: UUID, name: String) {
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty,
+              let index = savedDrawings.firstIndex(where: { $0.id == id }) else { return }
+
+        savedDrawings[index].name = trimmedName
+        persistSavedDrawings()
+    }
+
+    func loadDrawingIntoCanvas(_ drawing: SavedDrawing) {
+        doodleLines = drawing.doodleLines
+    }
+
+    func syncDrawingPreference() {
+        loadForActiveProfile()
+    }
+
+    private func loadSavedDrawings() {
+        migrateLegacyDrawingIfNeeded()
+
+        let key = Self.folderKey(for: Self.currentProfileID())
+        guard let data = UserDefaults.standard.data(forKey: key),
+              let decoded = try? JSONDecoder().decode([SavedDrawing].self, from: data) else {
+            savedDrawings = []
+            return
+        }
+
+        savedDrawings = decoded.sorted { $0.createdAt > $1.createdAt }
+    }
+
+    private func persistSavedDrawings() {
         guard saveDrawingsEnabled else { return }
 
-        let payload = doodleLines.map { line in
+        if let data = try? JSONEncoder().encode(savedDrawings) {
+            UserDefaults.standard.set(data, forKey: Self.folderKey(for: Self.currentProfileID()))
+        }
+    }
+
+    private func clearSavedDrawingsFolder() {
+        Self.clearDrawings(for: Self.currentProfileID())
+    }
+
+    private func migrateLegacyDrawingIfNeeded() {
+        let profileID = Self.currentProfileID()
+        let scopedKey = Self.folderKey(for: profileID)
+        guard UserDefaults.standard.data(forKey: scopedKey) == nil,
+              let legacyData = UserDefaults.standard.data(forKey: Self.legacySavedDoodlesKey),
+              let legacyLines = try? JSONDecoder().decode([PersistableDoodleLine].self, from: legacyData),
+              !legacyLines.isEmpty else {
+            return
+        }
+
+        let migrated = SavedDrawing(
+            name: "Saved drawing",
+            canvasWidth: 350,
+            canvasHeight: 420,
+            lines: legacyLines
+        )
+        savedDrawings = [migrated]
+        persistSavedDrawings()
+        UserDefaults.standard.removeObject(forKey: Self.legacySavedDoodlesKey)
+    }
+
+    private func encodeLines(_ lines: [DoodleLine]) -> [PersistableDoodleLine] {
+        lines.map { line in
             PersistableDoodleLine(
                 points: line.points.map { PersistablePoint(x: $0.x, y: $0.y) },
                 lineWidth: Double(line.lineWidth)
             )
         }
-
-        if let data = try? JSONEncoder().encode(payload) {
-            UserDefaults.standard.set(data, forKey: Self.savedDoodlesKey)
-        }
     }
 
-    func syncDrawingPreference() {
-        let enabled = UserDefaults.standard.bool(forKey: Self.saveDrawingsEnabledKey)
-        if saveDrawingsEnabled != enabled {
-            saveDrawingsEnabled = enabled
-            return
-        }
-
-        if enabled && doodleLines.isEmpty {
-            doodleLines = Self.loadSavedDoodles()
-        }
-    }
-
-    private func clearSavedDoodles() {
-        UserDefaults.standard.removeObject(forKey: Self.savedDoodlesKey)
-    }
-
-    private static func loadSavedDoodles() -> [DoodleLine] {
-        guard let data = UserDefaults.standard.data(forKey: savedDoodlesKey),
-              let payload = try? JSONDecoder().decode([PersistableDoodleLine].self, from: data) else {
-            return []
-        }
-
-        return payload.map { line in
-            DoodleLine(
-                points: line.points.map { CGPoint(x: $0.x, y: $0.y) },
-                color: .sageGreen,
-                lineWidth: CGFloat(line.lineWidth)
-            )
-        }
-    }
-    
     func toggleMusic() {
         if isPlayingMusic {
             stopCalmSound()
@@ -177,12 +356,12 @@ class PanicRoomViewModel {
     }
 }
 
-private struct PersistableDoodleLine: Codable {
+struct PersistableDoodleLine: Codable, Equatable {
     var points: [PersistablePoint]
     var lineWidth: Double
 }
 
-private struct PersistablePoint: Codable {
+struct PersistablePoint: Codable, Equatable {
     var x: Double
     var y: Double
 }

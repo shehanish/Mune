@@ -33,7 +33,7 @@ final class ChatViewModel {
         let resolvedName = userName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Friend" : userName
         self.messages = [
             ChatMessage(
-                text: "I'm here while you get through this, \(resolvedName). What's on your mind?",
+                text: "I'm right here with you, \(resolvedName). What's sitting on your heart?",
                 isUser: false,
                 senderName: "Mend"
             )
@@ -66,20 +66,50 @@ final class ChatViewModel {
         let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
 
-        // Add user message
         messages.append(ChatMessage(text: text, isUser: true, senderName: displayName))
+
+        let crisisSignals = CrisisSupportDetector.detect(in: text)
+        if !crisisSignals.isEmpty {
+            messages.append(
+                ChatMessage(
+                    text: crisisSupportMessage(for: crisisSignals),
+                    isUser: false,
+                    senderName: "Mend",
+                    kind: .crisisSupport(crisisSignals)
+                )
+            )
+            // Do not send crisis content to the AI service.
+            return
+        }
+
         isThinking = true
-        
-        let conversation = messages.map { (isUser: $0.isUser, text: $0.text) }
+
+        let conversation = messages
+            .filter { if case .text = $0.kind { return true }; return $0.isUser }
+            .map { (isUser: $0.isUser, text: $0.text) }
         let context = contextProvider?()
-        
+
         do {
-            let response = try await aiService.generateChatResponse(conversation: conversation, userName: displayName, context: context)
+            let response = try await aiService.generateChatResponse(
+                conversation: conversation,
+                userName: displayName,
+                context: context
+            )
             messages.append(ChatMessage(text: response, isUser: false, senderName: "Mend"))
             isThinking = false
         } catch {
-            messages.append(ChatMessage(text: "Something went wrong. Please try again.", isUser: false, senderName: "Mend"))
+            messages.append(ChatMessage(text: "I hit a small snag. When you're ready, we can try again.", isUser: false, senderName: "Mend"))
             isThinking = false
         }
+    }
+
+    private func crisisSupportMessage(for signals: Set<CrisisSignal>) -> String {
+        if signals.contains(.selfHarm), signals.contains(.harmToOthers) {
+            return "Thank you for trusting me with this. Your safety matters so much. Please reach for real help using the options below. You don’t have to face this alone."
+        }
+        if signals.contains(.harmToOthers) {
+            return "Those thoughts are serious, and you don’t have to carry them alone. Please use the options below for immediate help. People are ready for you."
+        }
+        return "Thank you for telling me. You deserve real, human support right now. Please use the options below. You’re not alone."
     }
 }

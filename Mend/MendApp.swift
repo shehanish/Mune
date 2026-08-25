@@ -14,10 +14,16 @@ struct MendApp: App {
     
     var body: some Scene {
         WindowGroup {
-            if isLoggedIn {
-                RootTabView()
-            } else {
-                WelcomeView()
+            Group {
+                if isLoggedIn {
+                    RootTabView()
+                } else {
+                    WelcomeView()
+                }
+            }
+            .preferredColorScheme(.light)
+            .onAppear {
+                LocalProfileStore.migrateLegacyIfNeeded()
             }
         }
         .modelContainer(for: [MoodEntry.self, JournalEntry.self])

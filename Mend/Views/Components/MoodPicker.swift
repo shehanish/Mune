@@ -13,7 +13,7 @@ struct MoodPicker: View {
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
+            HStack(spacing: 10) {
                 ForEach(moods, id: \.self) { mood in
                     MoodChip(
                         title: mood,
@@ -24,8 +24,9 @@ struct MoodPicker: View {
                 }
             }
             .padding(.horizontal)
-            .padding(.vertical, 4)
+            .padding(.vertical, 6)
         }
+        .frame(maxWidth: .infinity)
     }
 
     private func toggle(_ mood: String) {
@@ -46,27 +47,14 @@ private struct MoodChip: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 8) {
-                Text(title)
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    
-
-                if isSelected {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.subheadline)
-                }
-            }
-            .padding(.vertical, 10)
-            .padding(.horizontal, 14)
-            .foregroundStyle(Color.brandPrimary)
-            .background(
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(isSelected ? Color.sageGreen.opacity(0.3) : Color.white.opacity(0.9))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 14)
-                    .strokeBorder(isSelected ? Color.sageGreen.opacity(0.5) : Color.sageGreen.opacity(0.15), lineWidth: 1)
+            MendChipLabel(
+                title: title,
+                isSelected: isSelected,
+                showsCheckmark: true,
+                selectedForeground: .brandPrimary,
+                unselectedForeground: .brandPrimary,
+                selectedFill: Color.sageGreen.opacity(0.3),
+                unselectedFill: Color.chipSurface
             )
         }
         .buttonStyle(.plain)

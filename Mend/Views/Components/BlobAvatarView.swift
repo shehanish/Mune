@@ -11,9 +11,12 @@ struct BlobAvatarView: View {
     var rotation: Angle = .degrees(0)
     var scale: CGFloat = 1
 
+    private var motionX: CGFloat { animate ? 6 : 0 }
+    private var motionY: CGFloat { animate ? 8 : 0 }
+
     private func content(phase: CGFloat) -> some View {
-        let animatedOffsetX = offsetX + (animate ? sin(phase * 1.3) * 5 : 0)
-        let animatedOffsetY = offsetY + (animate ? cos(phase * 1.6) * 7 : 0)
+        let animatedOffsetX = offsetX + (animate ? sin(phase * 1.3) * motionX : 0)
+        let animatedOffsetY = offsetY + (animate ? cos(phase * 1.6) * motionY : 0)
         let animatedRotation = rotation + (animate ? .degrees(sin(phase * 1.1) * 4) : .degrees(0))
         let animatedScale = scale * (animate ? 1 + (cos(phase * 1.8) * 0.02) : 1)
 
@@ -34,7 +37,11 @@ struct BlobAvatarView: View {
                 .rotationEffect(animatedRotation)
                 .offset(x: animatedOffsetX, y: animatedOffsetY)
         }
-        .frame(width: width, height: height)
+        // Leave room for the wobble so edges aren't clipped.
+        .frame(
+            width: width + motionX * 2 + 8,
+            height: height + motionY * 2 + 8
+        )
     }
     
     var body: some View {
