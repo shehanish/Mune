@@ -14,6 +14,8 @@ struct MoodsSectionView: View {
 
     @Binding var notesText: String
     var isNotesFocused: FocusState<Bool>.Binding
+    var canShare: Bool = true
+    var isSharing: Bool = false
 
     var onApply: (_ appliedMoods: [String]) -> Void
 
@@ -32,10 +34,7 @@ struct MoodsSectionView: View {
                     .frame(maxWidth: 420)
                     .frame(maxWidth: .infinity, alignment: .center)
 
-                // NEW: Note box under selected moods box
                 VStack(alignment: .leading, spacing: 8) {
-                    
-
                     TextField("Write whatever is on your heart…", text: $notesText, axis: .vertical)
                         .focused(isNotesFocused)
                         .lineLimit(3...6)
@@ -50,18 +49,30 @@ struct MoodsSectionView: View {
                 }
 
                 Button {
+                    guard canShare, !isSharing else { return }
                     onApply(Array(selectedMoods).sorted())
                 } label: {
-                    Text("Share this with me")
-                        .fontWeight(.bold)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(Color.brandFill)
-                        .foregroundStyle(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                    HStack(spacing: 8) {
+                        if isSharing {
+                            ProgressView()
+                                .tint(.white)
+                        }
+                        Text(isSharing ? "Sharing…" : "Share this with me")
+                            .fontWeight(.bold)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(canShare ? Color.brandFill : Color.brandFill.opacity(0.35))
+                    .foregroundStyle(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
                 }
                 .buttonStyle(.plain)
-                
+                .disabled(!canShare)
+                .accessibilityHint(
+                    canShare
+                    ? "Saves this check-in"
+                    : "Pick a feeling or write a note first"
+                )
             }
             .padding(.horizontal)
         }

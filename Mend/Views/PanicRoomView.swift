@@ -95,9 +95,10 @@ struct PanicRoomView: View {
 
                                     Text(vm.saveDrawingsEnabled
                                          ? "Draw, name, and keep pieces in your private folder."
-                                         : "Draw to let it out. Turn on Save drawings in Settings if you’d like to keep them.")
+                                         : "Draw to let it out. To keep drawings: go to Home, tap the profile icon, open Settings, and turn on Save drawings.")
                                         .font(.caption)
                                         .foregroundColor(.brandPrimary.opacity(0.7))
+                                        .fixedSize(horizontal: false, vertical: true)
                                 }
 
                                 Spacer()
@@ -466,7 +467,7 @@ private struct DrawingPadSheet: View {
 
                     Text(vm.saveDrawingsEnabled
                          ? "Clearing only wipes this page. Saved drawings stay in My drawings."
-                         : "This page is temporary. Turn on Save drawings in Settings if you’d like to keep a folder.")
+                         : "This page is temporary. To keep your drawings: Home → profile icon → Settings → turn on Save drawings.")
                         .font(.caption)
                         .foregroundColor(.brandPrimary.opacity(0.7))
                         .multilineTextAlignment(.center)

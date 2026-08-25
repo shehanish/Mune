@@ -26,6 +26,7 @@ final class HomeViewModel {
 
     // Ephemeral UI state
     var selectedMoods: Set<String> = []
+    var isSavingCheckIn: Bool = false
 
     // Weekly Home summary (kept lean for Track; extra fields feed chat context)
     var weeklyMoodCounts: [MoodCount] = []
@@ -57,16 +58,27 @@ final class HomeViewModel {
         self.calendar = calendar
     }
 
-    // Derived UI state
-    var canApply: Bool { true }
+    /// Needs at least one mood (or a note), and only one save at a time.
+    var canShareCheckIn: Bool {
+        guard !isSavingCheckIn else { return false }
+        let hasMoods = !selectedMoods.isEmpty
+        let hasNote = !notesText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        return hasMoods || hasNote
+    }
 
 
     // User action: save mood entry
     func apply() async {
-        let applied = Array(selectedMoods).sorted()
+        guard !isSavingCheckIn else { return }
 
+        let applied = Array(selectedMoods).sorted()
         let trimmed = notesText.trimmingCharacters(in: .whitespacesAndNewlines)
         let notesOrNil: String? = trimmed.isEmpty ? nil : trimmed
+
+        guard !applied.isEmpty || notesOrNil != nil else { return }
+
+        isSavingCheckIn = true
+        defer { isSavingCheckIn = false }
 
         do {
             try await moodRepo.addMoodEntry(

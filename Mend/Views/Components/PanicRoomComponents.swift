@@ -68,25 +68,31 @@ struct GroundingRow: View {
     let number: String
     let text: String
     let icon: String
-    
+
+    private let badgeSize: CGFloat = 28
+    private let iconSlot: CGFloat = 28
+
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(alignment: .center, spacing: 12) {
             Text(number)
-                .font(.subheadline.bold())
-                .foregroundColor(.white)
-                .frame(width: 24, height: 24)
-                .background(Color.sageGreen)
-                .clipShape(Circle())
-            
+                .font(.subheadline.weight(.bold))
+                .foregroundStyle(.white)
+                .frame(width: badgeSize, height: badgeSize)
+                .background(Color.sageGreen, in: Circle())
+
             Text(text)
                 .font(.subheadline)
-                .foregroundColor(.brandPrimary)
-            
-            Spacer()
-            
+                .foregroundStyle(Color.brandPrimary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .multilineTextAlignment(.leading)
+
             Image(systemName: icon)
-                .foregroundColor(.sageGreen.opacity(0.8))
+                .font(.body.weight(.medium))
+                .foregroundStyle(Color.sageGreen.opacity(0.85))
+                .frame(width: iconSlot, height: iconSlot)
+                .accessibilityHidden(true)
         }
+        .frame(minHeight: 36)
     }
 }
 

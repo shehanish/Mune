@@ -145,7 +145,9 @@ struct HomeView: View {
                                 moods: moods,
                                 selectedMoods: $vm.selectedMoods,
                                 notesText: $vm.notesText,
-                                isNotesFocused: $isNotesFocused
+                                isNotesFocused: $isNotesFocused,
+                                canShare: vm.canShareCheckIn,
+                                isSharing: vm.isSavingCheckIn
                             ) { _ in
                                 Task { await vm.apply() }
                             }

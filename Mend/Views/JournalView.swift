@@ -364,17 +364,17 @@ struct JournalView: View {
     private var historyCard: some View {
         DisclosureGroup(isExpanded: $showHistoryEntries) {
             VStack(alignment: .leading, spacing: 12) {
-                HStack {
+                HStack(alignment: .center, spacing: 12) {
                     Button(isSelectingHistoryEntries ? "Done" : "Select") {
                         isSelectingHistoryEntries.toggle()
                         if !isSelectingHistoryEntries {
                             selectedJournalEntryKeys.removeAll()
                         }
                     }
-                    .font(.caption.bold())
+                    .font(.caption.weight(.semibold))
                     .foregroundStyle(Color.brandPrimary)
 
-                    Spacer()
+                    Spacer(minLength: 8)
 
                     if isSelectingHistoryEntries && !selectedJournalEntryKeys.isEmpty {
                         Button(role: .destructive) {
@@ -384,10 +384,11 @@ struct JournalView: View {
                             Task { await vm.deleteJournalEntries(withKeys: keys) }
                         } label: {
                             Text("Delete Selected")
-                                .font(.caption.bold())
+                                .font(.caption.weight(.semibold))
                         }
                     }
                 }
+                .frame(minHeight: 28)
 
                 if vm.moodEntries.isEmpty && vm.historyEntries.isEmpty {
                     Text("Your saved pages will gather here over time.")
@@ -489,79 +490,85 @@ struct JournalView: View {
         let key = vm.journalEntryKey(entry)
 
         return VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .top) {
-                Button {
-                    if isSelectingHistoryEntries {
+            HStack(alignment: .center, spacing: 12) {
+                if isSelectingHistoryEntries {
+                    Button {
                         toggleJournalSelection(for: entry)
+                    } label: {
+                        Image(systemName: selectedJournalEntryKeys.contains(key) ? "checkmark.circle.fill" : "circle")
+                            .font(.title3)
+                            .foregroundStyle(Color.brandPrimary)
+                            .frame(width: 28, height: 28)
                     }
-                } label: {
-                    HStack(alignment: .top, spacing: 10) {
-                        if isSelectingHistoryEntries {
-                            Image(systemName: selectedJournalEntryKeys.contains(key) ? "checkmark.circle.fill" : "circle")
-                                .font(.title3)
-                                .foregroundStyle(Color.brandPrimary)
-                                .padding(.top, 1)
-                        }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Select entry")
+                }
 
-                        HStack {
-                            Text(entry.timestamp.formatted(date: .abbreviated, time: .shortened))
-                                .font(.subheadline.bold())
-                            Spacer()
-                            if entry.transcript != nil {
-                                Label("Recorded", systemImage: "mic.fill")
-                                    .font(.caption)
-                                    .foregroundStyle(Color.brandPrimary)
-                            } else {
-                                Label("Journal", systemImage: "note.text")
-                                    .font(.caption)
-                                    .foregroundStyle(Color.brandPrimary)
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(alignment: .center, spacing: 8) {
+                        Text(entry.timestamp.formatted(date: .abbreviated, time: .shortened))
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(Color.brandPrimary)
+
+                        Spacer(minLength: 4)
+
+                        if entry.transcript != nil {
+                            Label("Recorded", systemImage: "mic.fill")
+                                .font(.caption)
+                                .foregroundStyle(Color.brandPrimary)
+                                .labelStyle(.titleAndIcon)
+                        } else {
+                            Label("Journal", systemImage: "note.text")
+                                .font(.caption)
+                                .foregroundStyle(Color.brandPrimary)
+                                .labelStyle(.titleAndIcon)
+                        }
+                    }
+
+                    if !entry.journalText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        Text(entry.journalText)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    } else if let transcript = entry.transcript, !transcript.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        Text(transcript)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+
+                    if !entry.gratitudeOne.isEmpty || !entry.gratitudeTwo.isEmpty || !entry.gratitudeThree.isEmpty {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Gratitudes")
+                                .font(.caption.bold())
+                                .foregroundStyle(.secondary)
+
+                            if !entry.gratitudeOne.isEmpty {
+                                Text("• \(entry.gratitudeOne)")
+                            }
+                            if !entry.gratitudeTwo.isEmpty {
+                                Text("• \(entry.gratitudeTwo)")
+                            }
+                            if !entry.gratitudeThree.isEmpty {
+                                Text("• \(entry.gratitudeThree)")
                             }
                         }
+                        .font(.footnote)
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .buttonStyle(.plain)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
                 Button(role: .destructive) {
                     Task { await vm.deleteJournalEntries(withKeys: [key]) }
                 } label: {
                     Image(systemName: "trash")
-                        .font(.caption.bold())
+                        .font(.caption.weight(.semibold))
                         .foregroundStyle(.red)
-                        .padding(8)
-                        .background(Color.red.opacity(0.08))
-                        .clipShape(Circle())
+                        .frame(width: 32, height: 32)
+                        .background(Color.red.opacity(0.08), in: Circle())
                 }
                 .buttonStyle(.plain)
-            }
-
-            if !entry.journalText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                Text(entry.journalText)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            } else if let transcript = entry.transcript, !transcript.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                Text(transcript)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
-
-            if !entry.gratitudeOne.isEmpty || !entry.gratitudeTwo.isEmpty || !entry.gratitudeThree.isEmpty {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Gratitudes")
-                        .font(.caption.bold())
-                        .foregroundStyle(.secondary)
-
-                    if !entry.gratitudeOne.isEmpty {
-                        Text("• \(entry.gratitudeOne)")
-                    }
-                    if !entry.gratitudeTwo.isEmpty {
-                        Text("• \(entry.gratitudeTwo)")
-                    }
-                    if !entry.gratitudeThree.isEmpty {
-                        Text("• \(entry.gratitudeThree)")
-                    }
-                }
-                .font(.footnote)
+                .accessibilityLabel("Delete journal entry")
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
