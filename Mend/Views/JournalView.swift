@@ -259,7 +259,7 @@ struct JournalView: View {
                     }
                     .padding(.vertical, 4)
                 }
-                .scrollClipDisabled()
+                .clipped()
             }
 
             TextEditor(text: $vm.journalText)
