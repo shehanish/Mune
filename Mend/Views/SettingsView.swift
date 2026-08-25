@@ -16,11 +16,13 @@ struct SettingsView: View {
     @AppStorage("reminderMinute")        private var reminderMinute        = 0
     @AppStorage("healingHintsEnabled")   private var healingHintsEnabled   = true
     @AppStorage("reduceMotionEnabled")   private var reduceMotionEnabled   = false
-    @AppStorage("saveDrawingsEnabled")   private var saveDrawingsEnabled   = false
+    @AppStorage("activeProfileID")       private var activeProfileID       = ""
 
+    @State private var saveDrawingsEnabled = false
     @State private var notificationStatus: UNAuthorizationStatus = .notDetermined
     @State private var showPermissionDeniedAlert = false
     @State private var reminderTime = Date()
+    @State private var showFeedbackSheet = false
 
     var body: some View {
         NavigationStack {
@@ -32,9 +34,9 @@ struct SettingsView: View {
                         header
 
                         // MARK: Notifications card
-                        settingsCard(title: "Daily reminder") {
+                        settingsCard(title: "A gentle reminder") {
                             VStack(alignment: .leading, spacing: 14) {
-                                Toggle("Remind me to check in", isOn: Binding(
+                                Toggle("Remind me to check in with myself", isOn: Binding(
                                     get: { dailyRemindersEnabled },
                                     set: { newValue in
                                         if newValue {
@@ -59,13 +61,13 @@ struct SettingsView: View {
                                         scheduleReminder(hour: reminderHour, minute: reminderMinute)
                                     }
 
-                                    Text("A gentle nudge to check in on your healing.")
+                                    Text("A soft nudge to pause and check in with your heart.")
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
 
                                 if notificationStatus == .denied {
-                                    Label("Notifications are blocked. Enable them in Settings → Mend.", systemImage: "bell.slash")
+                                    Label("Notifications are blocked. You can enable them in Settings → Mend when you’re ready.", systemImage: "bell.slash")
                                         .font(.caption)
                                         .foregroundStyle(.orange)
                                 }
@@ -74,14 +76,14 @@ struct SettingsView: View {
 
                         // MARK: Display card
                         settingsCard(title: "Display") {
-                            Toggle("Helpful hints", isOn: $healingHintsEnabled)
-                            Text("Show gentle tips and prompts throughout the app.")
+                            Toggle("Gentle hints", isOn: $healingHintsEnabled)
+                            Text("Show soft tips and prompts as we move through the app together.")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                                 .padding(.top, -6)
 
                             Toggle("Reduce motion", isOn: $reduceMotionEnabled)
-                            Text("Turns off animated blobs and transitions.")
+                            Text("Turns off moving animations if they feel like too much.")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                                 .padding(.top, -6)
@@ -92,20 +94,38 @@ struct SettingsView: View {
                                 get: { saveDrawingsEnabled },
                                 set: { newValue in
                                     saveDrawingsEnabled = newValue
+                                    let profileID = PanicRoomViewModel.currentProfileID()
+                                    UserDefaults.standard.set(newValue, forKey: PanicRoomViewModel.enabledKey(for: profileID))
+                                    UserDefaults.standard.set(newValue, forKey: PanicRoomViewModel.saveDrawingsEnabledKey)
                                     if !newValue {
-                                        UserDefaults.standard.removeObject(forKey: "savedCalmSpaceDoodles")
+                                        PanicRoomViewModel.clearDrawings(for: profileID)
                                     }
                                 }
                             ))
-                            Text("Keep doodles on this device. Turn this off if you want drawings to stay temporary.")
+                            Text("Keep named drawings in a private folder for this space. Turn off if you only want to draw for the moment.")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                                 .padding(.top, -6)
                         }
 
+                        // MARK: Feedback card
+                        settingsCard(title: "Feedback") {
+                            Text("Tell me what would help you more. Screenshots are welcome.")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+
+                            Button {
+                                showFeedbackSheet = true
+                            } label: {
+                                Label("Feedback", systemImage: "envelope.fill")
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(Color.brandPrimary)
+                            }
+                        }
+
                         // MARK: Account card
-                        settingsCard(title: "Account") {
-                            Text("Use Profile to change your name or photo. Use Sign Out in Profile to leave the app.")
+                        settingsCard(title: "This space") {
+                            Text("Use Profile to change your name or photo. Leave this space anytime from Profile. Your pages stay safely on this device.")
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
                         }
@@ -118,7 +138,7 @@ struct SettingsView: View {
                                     .foregroundStyle(Color.brandPrimary)
                             }
                             Divider()
-                            Text("Mend is a breakup support tool. It is not a substitute for professional mental health care. If you are in crisis, call or text 988.")
+                            Text("Mend offers kind breakup support. It is not therapy, medical care, or a crisis service. If you’re in crisis, find a local helpline or call your local emergency number.")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -134,7 +154,10 @@ struct SettingsView: View {
                         .foregroundStyle(Color.brandPrimary)
                 }
             }
-            .alert("Notifications blocked", isPresented: $showPermissionDeniedAlert) {
+            .sheet(isPresented: $showFeedbackSheet) {
+                FeedbackView()
+            }
+            .alert("Notifications need a quick yes", isPresented: $showPermissionDeniedAlert) {
                 Button("Open Settings") {
                     if let url = URL(string: UIApplication.openSettingsURLString) {
                         UIApplication.shared.open(url)
@@ -142,7 +165,7 @@ struct SettingsView: View {
                 }
                 Button("Cancel", role: .cancel) {}
             } message: {
-                Text("Please enable notifications for Mend in your iPhone Settings to receive daily reminders.")
+                Text("To receive gentle reminders, please allow notifications for Mend in your iPhone Settings.")
             }
             .onAppear { loadState() }
         }
@@ -151,17 +174,17 @@ struct SettingsView: View {
     // MARK: - Header
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Make Mend yours")
+            Text("Make this space feel like yours")
                 .font(.title2.bold())
                 .foregroundStyle(Color.brandPrimary)
 
-            Text("Adjust what helps most and tone down what feels like too much.")
+            Text("Keep what helps, soften what feels like too much.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(20)
-        .background(Color.white.opacity(0.88))
+        .background(Color.cardSurface)
         .clipShape(RoundedRectangle(cornerRadius: 24))
     }
 
@@ -177,13 +200,21 @@ struct SettingsView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(18)
-        .background(Color.white.opacity(0.88))
+        .background(Color.cardSurface)
         .clipShape(RoundedRectangle(cornerRadius: 24))
     }
 
     // MARK: - Notification helpers
 
     private func loadState() {
+        PanicRoomViewModel.migrateUnscopedDrawingsIfNeeded()
+        let profileID = PanicRoomViewModel.currentProfileID()
+        if let stored = UserDefaults.standard.object(forKey: PanicRoomViewModel.enabledKey(for: profileID)) as? Bool {
+            saveDrawingsEnabled = stored
+        } else {
+            saveDrawingsEnabled = UserDefaults.standard.bool(forKey: PanicRoomViewModel.saveDrawingsEnabledKey)
+        }
+
         // Restore reminder time picker from saved hour/minute
         var comps        = Calendar.current.dateComponents([.year, .month, .day], from: Date())
         comps.hour       = reminderHour
@@ -220,8 +251,8 @@ struct SettingsView: View {
         center.removePendingNotificationRequests(withIdentifiers: ["mend.daily.reminder"])
 
         let content          = UNMutableNotificationContent()
-        content.title        = "Time to check in 🌿"
-        content.body         = "How are you feeling today? A few moments of reflection can make a difference."
+        content.title        = "A soft check-in 🌿"
+        content.body         = "How is your heart today? Even a few quiet moments with yourself can help."
         content.sound        = .default
 
         var dateComponents   = DateComponents()

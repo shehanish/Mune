@@ -63,7 +63,7 @@ Have a real conversation with AI that understands breakup recovery — no contac
 Process the breakup in writing or by voice. Log gratitudes and reflect on what you're learning. Your journal stays entirely on your device using SwiftData.
 
 **Calm Space**
-For the moments you want to text them, checked their socials, or feel like day one again. Includes guided breathing, 5-4-3-2-1 grounding, a private vent pad (say it without sending it), a drawing canvas, and a direct link to the **988 Suicide & Crisis Lifeline**.
+For the moments you want to text them, checked their socials, or feel like day one again. Includes guided breathing, 5-4-3-2-1 grounding, a private vent pad (say it without sending it), a drawing canvas, a call-a-friend contact picker, and worldwide crisis links (IASP Find a Helpline + local emergency).
 
 **Personal setup**
 Choose your name and breakup goals during onboarding — no contact, processing grief, hard-moment support, rebuilding your routine. Everything adapts to feel like *your* Mend.
@@ -73,7 +73,7 @@ Choose your name and breakup goals during onboarding — no contact, processing 
 ## Privacy
 
 - All mood entries, journal entries, and profile data are stored **locally on your device** using SwiftData
-- AI features send only aggregated mood counts and your nickname to OpenAI — never raw journal text
+- AI features may send moods, optional notes, chat messages, and brief journal context to OpenAI through a secure proxy
 - No account required, no tracking, no third-party analytics
 - [Privacy Policy](https://shehanish.github.io/Mend/privacy-policy.html)
 
@@ -138,7 +138,9 @@ Mend/
 
 ## Crisis Resources
 
-Mend includes a direct link to the **988 Suicide & Crisis Lifeline** (call or text 988) in the Calm Space tab. If you or someone you know is in crisis, please reach out.
+Calm Space and Chat point people to **[IASP Find a Helpline](https://www.iasp.info/suicidalthoughts/)** (worldwide) and local emergency services (**112** in the EU, **911** in the US). US devices may also see **988**. Mend is not a crisis service.
+
+Calm Space ambient audio is from Pixabay; see `THIRD_PARTY_AUDIO.md`.
 
 ---
 

@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ChatView: View {
     @State private var vm: ChatViewModel
+    @FocusState private var isInputFocused: Bool
 
     init(vm: ChatViewModel) {
         _vm = State(initialValue: vm)
@@ -16,29 +17,14 @@ struct ChatView: View {
 
     var body: some View {
         ZStack {
-            // Match the background gradient from HomeView
             Color.appBackgroundGradient
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Header
-                VStack(spacing: 4) {
-                    Text("Talk to Mend")
-                        .font(.headline.bold())
-                        .foregroundStyle(Color.brandPrimary)
-                    Text("Breakup support · Not professional care")
-                        .font(.caption)
-                        .foregroundStyle(Color.brandPrimary.opacity(0.52))
-                }
-                .padding(.vertical, 12)
-                .frame(maxWidth: .infinity)
-                .background(Color.white.opacity(0.38))
-                .overlay(alignment: .bottom) {
-                    Divider().opacity(0.18)
-                }
-                
-                ScrollView(.vertical, showsIndicators: false) {
-                    ScrollViewReader { proxy in
+                chatHeader
+
+                ScrollViewReader { proxy in
+                    ScrollView(.vertical, showsIndicators: false) {
                         VStack(spacing: 16) {
                             ForEach(vm.messages) { message in
                                 MessageBubble(message: message)
@@ -46,109 +32,144 @@ struct ChatView: View {
                             }
                         }
                         .padding(.horizontal)
-                        .padding(.top, 10)
-                        // Auto-scroll to bottom when new messages arrive
-                        .onChange(of: vm.messages.count) { _, _ in
-                            if let last = vm.messages.last {
-                                withAnimation {
-                                    proxy.scrollTo(last.id, anchor: .bottom)
-                                }
-                            }
+                        .padding(.top, 12)
+                        .padding(.bottom, 12)
+                    }
+                    .scrollDismissesKeyboard(.interactively)
+                    .onChange(of: vm.messages.count) { _, _ in
+                        scrollToBottom(using: proxy, animated: true)
+                    }
+                    .onChange(of: isInputFocused) { _, isFocused in
+                        if isFocused {
+                            scrollToBottom(using: proxy, animated: true)
                         }
-                        .dismissKeyboardOnTap()
+                    }
+                    .onAppear {
+                        scrollToBottom(using: proxy, animated: false)
+                        Task {
+                            await vm.sendPendingSeedMessageIfNeeded()
+                        }
                     }
                 }
-                .scrollDismissesKeyboard(.interactively)
-                .onAppear {
-                    Task {
-                        await vm.sendPendingSeedMessageIfNeeded()
-                    }
-                }
-                
-                if vm.isThinking {
-                    HStack {
-                        ZStack {
-                            Circle()
-                                .fill(Color.white.opacity(0.92))
-                                .overlay(
-                                    Circle()
-                                        .stroke(Color.brandPrimary.opacity(0.18), lineWidth: 1)
-                                )
-                                .frame(width: 42, height: 42)
+            }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                chatInputBar
+            }
+        }
+    }
 
-                            BlobAvatarView(width: 22, height: 18, showShadow: false)
-                                .frame(width: 42, height: 42, alignment: .center)
-                                .offset(y: -1)
-                        }
-                     
-                        
-                        Text("typing...")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 8)
-                            .background(Color.white.opacity(0.85))
-                            .clipShape(RoundedRectangle(cornerRadius: 15))
-                        
-                        Spacer()
-                    }
-                    .padding(.horizontal)
-                    .padding(.bottom, 5)
-                }
-                
-                // Input Area
-                HStack(alignment: .bottom, spacing: 10) {
-                    TextField("Type how you feel...", text: $vm.inputText, axis: .vertical)
-                        .padding(14)
-                        .background(Color.white.opacity(0.85))
-                        .clipShape(RoundedRectangle(cornerRadius: 20))
-                        .environment(\.colorScheme, .light)
-                        .lineLimit(1...5)
-                        .autocorrectionDisabled()
-                        .submitLabel(.send)
-                        .onSubmit {
-                            Task { await vm.sendMessage() }
-                        }
+    private var chatHeader: some View {
+        VStack(spacing: 4) {
+            Text("Talk with me")
+                .font(.headline.bold())
+                .foregroundStyle(Color.brandPrimary)
+            Text("Gentle breakup support · Not therapy or crisis care")
+                .font(.caption)
+                .foregroundStyle(Color.brandPrimary.opacity(0.52))
+            Text("If you’re in danger, call emergency services or find a local helpline")
+                .font(.caption2)
+                .foregroundStyle(Color.brandPrimary.opacity(0.45))
+        }
+        .padding(.vertical, 12)
+        .frame(maxWidth: .infinity)
+        .background(.ultraThinMaterial)
+        .overlay(alignment: .bottom) {
+            Divider().opacity(0.18)
+        }
+    }
 
-                    Button(action: {
-                        Task { await vm.sendMessage() }
-                    }) {
-                        Image(systemName: "arrow.up")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(.white)
-                            .frame(width: 44, height: 44)
-                            .background(
-                                vm.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                                ? Color.brandPrimary.opacity(0.3)
-                                : Color.brandPrimary
+    private var chatInputBar: some View {
+        VStack(spacing: 0) {
+            if vm.isThinking {
+                HStack {
+                    ZStack {
+                        Circle()
+                            .fill(Color.cardSurfaceStrong)
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.brandPrimary.opacity(0.18), lineWidth: 1)
                             )
-                            .clipShape(Circle())
+                            .frame(width: 42, height: 42)
+
+                        BlobAvatarView(width: 22, height: 18, showShadow: false)
+                            .frame(width: 42, height: 42, alignment: .center)
+                            .offset(y: -1)
                     }
-                    .disabled(vm.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+
+                    Text("thinking with you…")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 8)
+                        .background(Color.fieldSurface)
+                        .clipShape(RoundedRectangle(cornerRadius: 15))
+
+                    Spacer()
                 }
                 .padding(.horizontal)
-                .padding(.top, 8)
-                .padding(.bottom, 15)
+                .padding(.bottom, 8)
             }
-            .toolbar {
-                ToolbarItemGroup(placement: .keyboard) {
-                    Spacer()
-                    Button("Done") {
-                        dismissKeyboard()
+
+            HStack(alignment: .bottom, spacing: 10) {
+                TextField("Share what’s on your heart...", text: $vm.inputText, axis: .vertical)
+                    .focused($isInputFocused)
+                    .padding(14)
+                    .background(Color.cardSurfaceStrong)
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .lineLimit(1...5)
+                    .textInputAutocapitalization(.sentences)
+                    .submitLabel(.send)
+                    .onSubmit {
+                        Task { await sendAndKeepFocus() }
                     }
+
+                Button(action: {
+                    Task { await sendAndKeepFocus() }
+                }) {
+                    Image(systemName: "arrow.up")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(.white)
+                        .frame(width: 44, height: 44)
+                        .background(
+                            vm.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                            ? Color.brandFill.opacity(0.3)
+                            : Color.brandFill
+                        )
+                        .clipShape(Circle())
                 }
+                .disabled(vm.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
+            .padding(.horizontal)
+            .padding(.top, 8)
+            .padding(.bottom, 8)
+            .background(.ultraThinMaterial)
+        }
+    }
+
+    private func sendAndKeepFocus() async {
+        await vm.sendMessage()
+        isInputFocused = true
+    }
+
+    private func scrollToBottom(using proxy: ScrollViewProxy, animated: Bool) {
+        guard let last = vm.messages.last else { return }
+
+        if animated {
+            withAnimation(.easeOut(duration: 0.25)) {
+                proxy.scrollTo(last.id, anchor: .bottom)
+            }
+        } else {
+            proxy.scrollTo(last.id, anchor: .bottom)
         }
     }
 }
 
 #Preview {
-    // Basic preview stub
     struct PreviewService: AIInsightService {
         func generateMoodInsight(from input: MoodInsightInput, userName: String) async throws -> String { "Stub" }
         func generateChatResponse(conversation: [(isUser: Bool, text: String)], userName: String, context: ChatInsightContext?) async throws -> String { "Stub reply" }
     }
-    
+
     let vm = ChatViewModel(aiService: PreviewService(), userName: "Friend")
     return ChatView(vm: vm)
 }

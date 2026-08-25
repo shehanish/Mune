@@ -11,20 +11,24 @@ struct AuthView: View {
     @AppStorage("userName")     var userName     = ""
     @AppStorage("healingFocus") var healingFocus = ""
     @Environment(\.dismiss) var dismiss
+    @Environment(\.scenePhase) private var scenePhase
 
     // MARK: - Transient state
     @State private var name          = ""
     @State private var step          = 0           // 0 = welcome, 1 = name, 2 = focus, 3 = complete
     @State private var selectedFocuses: Set<String> = ["No contact"]
+    @State private var trackNoContact = true
+    @State private var noContactStartDate = Date()
+    @State private var didCustomizeNoContactStartDate = false
     @State private var showNameError = false
     @State private var goingForward  = true
 
     // MARK: - Data
     private let focusOptions: [(title: String, subtitle: String, icon: String)] = [
-        ("No contact",         "Stay strong when I want to reach out",     "hand.raised.fill"),
-        ("Process the grief",  "Journal, voice note, feel it safely",      "heart.text.square.fill"),
-        ("Hard moments",       "Help when I want to text them",            "heart.circle.fill"),
-        ("Rebuild my routine", "Small daily wins, back to myself",         "sun.and.horizon.fill"),
+        ("No contact",         "Be with me when I want to reach out",      "hand.raised.fill"),
+        ("Process the grief",  "A safe place to feel it, write it, say it", "heart.text.square.fill"),
+        ("Hard moments",       "Gentle help when I want to text them",     "heart.circle.fill"),
+        ("Rebuild my routine", "Small, kind steps back to myself",         "sun.and.horizon.fill"),
     ]
 
     private let indicatorSteps = 2   // steps 1 & 2 show the dot indicator
@@ -34,7 +38,6 @@ struct AuthView: View {
         NavigationStack {
             ZStack(alignment: .top) {
                 Color.appBackgroundGradient.ignoresSafeArea()
-                    .dismissKeyboardOnTap()
                 Circle()
                     .fill(Color.brandPrimary.opacity(0.07))
                     .frame(width: 320)
@@ -81,10 +84,6 @@ struct AuthView: View {
                         .accessibilityLabel(step == 1 ? "Skip name" : "Skip focus selection")
                     }
                 }
-                ToolbarItemGroup(placement: .keyboard) {
-                    Spacer()
-                    Button("Done") { hideKeyboard() }
-                }
             }
         }
         // Prevent accidental swipe-dismiss on the completion screen
@@ -93,6 +92,17 @@ struct AuthView: View {
             name = (userName.isEmpty || userName == "Friend") ? "" : userName
             let saved = healingFocus.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
             selectedFocuses = saved.isEmpty ? ["No contact"] : Set(saved)
+            refreshNoContactStartDateIfNeeded()
+        }
+        .onChange(of: step) { _, newStep in
+            if newStep == 2 {
+                refreshNoContactStartDateIfNeeded()
+            }
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                refreshNoContactStartDateIfNeeded()
+            }
         }
     }
 
@@ -112,52 +122,40 @@ struct AuthView: View {
 
     // MARK: - Page: Welcome
     private var welcomePage: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: 36) {
-                Spacer(minLength: 52)
-
-                ZStack {
-                    Circle()
-                        .fill(Color.white.opacity(0.16))
-                        .frame(width: 168)
-                    Circle()
-                        .fill(Color.white.opacity(0.10))
-                        .frame(width: 132)
-                    Image(systemName: "heart.text.square.fill")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 58)
-                        .foregroundStyle(Color.brandPrimary)
-                }
+        VStack(spacing: 22) {
+            Image(systemName: "heart.text.square.fill")
+                .font(.system(size: 44, weight: .semibold))
+                .foregroundStyle(Color.brandPrimary)
                 .accessibilityHidden(true)
 
-                VStack(spacing: 10) {
-                    Text("Welcome to Mend")
-                        .font(.system(size: 30, weight: .bold, design: .rounded))
-                        .foregroundStyle(Color.textOnPrimary)
+            VStack(spacing: 8) {
+                Text("Welcome to Mend")
+                    .font(.system(size: 30, weight: .bold, design: .rounded))
+                    .foregroundStyle(Color.textOnPrimary)
 
-                    Text("Your breakup healing companion.\nOne day at a time — especially the hard ones.")
-                        .font(.body)
-                        .multilineTextAlignment(.center)
-                        .foregroundStyle(Color.textOnPrimary.opacity(0.80))
-                        .lineSpacing(4)
-                        .padding(.horizontal, 28)
-                }
-
-                VStack(spacing: 10) {
-                    featurePill(icon: "lock.fill",          label: "Private — your story stays on your device")
-                    featurePill(icon: "brain.head.profile", label: "Breakup-aware AI support")
-                    featurePill(icon: "hand.raised.fill",   label: "Built for no contact and hard moments")
-                }
-                .padding(.horizontal, 28)
-
-                Spacer(minLength: 40)
-
-                primaryButton("Get Started") { advance() }
-                    .padding(.horizontal, 28)
-                    .padding(.bottom, 48)
+                Text("I’m here to walk with you through this.\nOne soft day at a time.")
+                    .font(.body)
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(Color.textOnPrimary.opacity(0.80))
+                    .lineSpacing(4)
             }
+
+            VStack(spacing: 10) {
+                featurePill(icon: "lock.fill",          label: "Private. Your story stays on your device")
+                featurePill(icon: "brain.head.profile", label: "Gentle, breakup-aware support when you need it")
+                featurePill(icon: "hand.raised.fill",   label: "Made for no contact and tender moments")
+            }
+
+            Text("Mend offers kind support, not therapy or medical care. If you’re in crisis, find a local helpline or call emergency services.")
+                .font(.caption)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(Color.textOnPrimary.opacity(0.62))
+                .padding(.top, 4)
+
+            primaryButton("Walk with me") { advance() }
         }
+        .padding(.horizontal, 28)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     // MARK: - Page: Name
@@ -168,8 +166,8 @@ struct AuthView: View {
 
                 pageHeader(
                     icon: "person.crop.circle.fill",
-                    title: "What's your name?",
-                    message: "Just your first name or a nickname is perfect. This is your space."
+                    title: "What should I call you?",
+                    message: "A first name or nickname is perfect. This little space is yours."
                 )
                 .padding(.bottom, 28)
 
@@ -179,7 +177,7 @@ struct AuthView: View {
                         .autocorrectionDisabled()
                         .font(.body)
                         .padding(14)
-                        .background(Color.white.opacity(0.88))
+                        .background(Color.cardSurface)
                         .clipShape(RoundedRectangle(cornerRadius: 14))
                         .overlay(
                             RoundedRectangle(cornerRadius: 14)
@@ -188,7 +186,7 @@ struct AuthView: View {
                                     lineWidth: 1.5
                                 )
                         )
-                        .foregroundStyle(Color.darkCharcoal)
+                        .foregroundStyle(Color.brandPrimary)
                         .accessibilityLabel("Name or nickname")
                         .onChange(of: name) { _, _ in
                             if showNameError { showNameError = false }
@@ -196,13 +194,13 @@ struct AuthView: View {
 
                     Group {
                         if showNameError {
-                            Label("Please keep it under 30 characters.", systemImage: "exclamationmark.circle")
+                            Label("Could you keep it under 30 characters?", systemImage: "exclamationmark.circle")
                                 .foregroundStyle(.red.opacity(0.80))
                         } else if !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                            Label("Hi, \(name.trimmingCharacters(in: .whitespacesAndNewlines))!", systemImage: "hand.wave.fill")
+                            Label("Hi, \(name.trimmingCharacters(in: .whitespacesAndNewlines)) . It’s so nice to meet you.", systemImage: "hand.wave.fill")
                                 .foregroundStyle(Color.textOnPrimary.opacity(0.72))
                         } else {
-                            Text("This is how Mend will greet you.")
+                            Text("I’ll greet you by this name.")
                                 .foregroundStyle(Color.textOnPrimary.opacity(0.60))
                         }
                     }
@@ -237,9 +235,8 @@ struct AuthView: View {
                 Spacer(minLength: 28)
 
                 pageHeader(
-                    icon: "sparkles",
                     title: "What do you need\nmost right now?",
-                    message: "Pick everything that fits — Mend will focus on what matters for your breakup."
+                    message: "Choose anything that feels true. I’ll gently focus on what matters for your heart right now."
                 )
                 .padding(.bottom, 24)
 
@@ -249,64 +246,61 @@ struct AuthView: View {
                     }
                 }
                 .padding(.horizontal, 24)
-                .padding(.bottom, 36)
+
+                if selectedFocuses.contains("No contact") {
+                    noContactSetupSection
+                        .padding(.horizontal, 24)
+                        .padding(.top, 20)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+
+                Spacer(minLength: 0)
+                    .padding(.bottom, 36)
 
                 HStack(spacing: 12) {
                     secondaryButton("Back") { back() }
-                    primaryButton("Enter Mend") { completeOnboarding() }
+                    primaryButton("Come into Mend") { completeOnboarding() }
                 }
                 .padding(.horizontal, 28)
                 .padding(.bottom, 48)
             }
         }
+        .scrollDismissesKeyboard(.interactively)
     }
 
     // MARK: - Page: Complete
     private var completePage: some View {
-        VStack(spacing: 0) {
-            Spacer()
-
-            VStack(spacing: 24) {
-                ZStack {
-                    Circle()
-                        .fill(Color.brandPrimary.opacity(0.07))
-                        .frame(width: 190)
-                    Circle()
-                        .fill(Color.brandPrimary.opacity(0.12))
-                        .frame(width: 148)
-                    Image(systemName: "checkmark.seal.fill")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 64)
-                        .foregroundStyle(Color.brandPrimary)
-                }
+        VStack(spacing: 22) {
+            Image(systemName: "checkmark.seal.fill")
+                .font(.system(size: 48, weight: .semibold))
+                .foregroundStyle(Color.brandPrimary)
                 .accessibilityHidden(true)
 
-                VStack(spacing: 10) {
-                    Text("You're all set\(nameDisplay)!")
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundStyle(Color.textOnPrimary)
-                        .multilineTextAlignment(.center)
-                        .accessibilityAddTraits(.isHeader)
+            VStack(spacing: 10) {
+                Text("You’re safely here\(nameDisplay).")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundStyle(Color.textOnPrimary)
+                    .multilineTextAlignment(.center)
+                    .accessibilityAddTraits(.isHeader)
 
-                    Text("Your breakup buddy is ready.\nTake a breath. One day at a time.")
-                        .font(.body)
-                        .multilineTextAlignment(.center)
-                        .foregroundStyle(Color.textOnPrimary.opacity(0.78))
-                        .lineSpacing(5)
-                        .padding(.horizontal, 32)
-                }
+                Text("I’m right beside you.\nTake a breath. We’ll go gently, one day at a time.")
+                    .font(.body)
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(Color.textOnPrimary.opacity(0.78))
+                    .lineSpacing(5)
             }
 
-            Spacer()
-
-            primaryButton("Open My Mend") {
-                isLoggedIn = true
+            primaryButton("Open my quiet space") {
+                if let profile = LocalProfileStore.activeProfile() {
+                    LocalProfileStore.activate(profile, signIn: true)
+                } else {
+                    isLoggedIn = true
+                }
                 dismiss()
             }
-            .padding(.horizontal, 28)
-            .padding(.bottom, 52)
         }
+        .padding(.horizontal, 28)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     // MARK: - Reusable Components
@@ -324,24 +318,26 @@ struct AuthView: View {
             Spacer()
         }
         .padding(14)
-        .background(Color.white.opacity(0.54))
+        .background(Color.cardSurfaceMuted)
         .clipShape(RoundedRectangle(cornerRadius: 14))
         .overlay(
             RoundedRectangle(cornerRadius: 14)
-                .stroke(Color.white.opacity(0.28), lineWidth: 1)
+                .stroke(Color.white.opacity(0.18), lineWidth: 1)
         )
     }
 
-    private func pageHeader(icon: String, title: String, message: String) -> some View {
+    private func pageHeader(icon: String? = nil, title: String, message: String) -> some View {
         VStack(alignment: .leading, spacing: 14) {
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundStyle(Color.brandPrimary)
-                .padding(12)
-                .background(Color.white.opacity(0.72))
-                .clipShape(Circle())
-                .padding(.horizontal, 28)
-                .accessibilityHidden(true)
+            if let icon {
+                Image(systemName: icon)
+                    .font(.title2)
+                    .foregroundStyle(Color.brandPrimary)
+                    .padding(12)
+                    .background(Color.cardSurfaceSoft)
+                    .clipShape(Circle())
+                    .padding(.horizontal, 28)
+                    .accessibilityHidden(true)
+            }
 
             VStack(alignment: .leading, spacing: 8) {
                 Text(title)
@@ -395,7 +391,7 @@ struct AuthView: View {
                     .foregroundStyle(isSelected ? Color.brandPrimary : Color.textOnPrimary.opacity(0.28))
             }
             .padding(14)
-            .background(isSelected ? Color.white.opacity(0.88) : Color.white.opacity(0.50))
+            .background(isSelected ? Color.cardSurface : Color.cardSurfaceMuted)
             .clipShape(RoundedRectangle(cornerRadius: 16))
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
@@ -407,6 +403,77 @@ struct AuthView: View {
         .accessibilityAddTraits(isSelected ? [.isSelected] : [])
     }
 
+    private var noContactSetupSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(alignment: .center, spacing: 12) {
+                Image(systemName: "calendar.badge.clock")
+                    .font(.title3)
+                    .foregroundStyle(Color.brandPrimary)
+                    .frame(width: 36, height: 36)
+                    .background(Color.brandPrimary.opacity(0.12), in: Circle())
+                    .accessibilityHidden(true)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Gently track my no-contact days")
+                        .font(.headline)
+                        .foregroundStyle(Color.textOnPrimary)
+
+                    Text("A quiet count of days since you last had contact , only if it feels helpful.")
+                        .font(.caption)
+                        .foregroundStyle(Color.textOnPrimary.opacity(0.65))
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Spacer(minLength: 8)
+
+                Toggle("", isOn: $trackNoContact)
+                    .labelsHidden()
+                    .tint(Color.brandPrimary)
+                    .accessibilityLabel("Gently track my no-contact days")
+            }
+
+            if trackNoContact {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("When was the last contact?")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Color.textOnPrimary.opacity(0.58))
+
+                    DatePicker(
+                        "When was the last contact?",
+                        selection: Binding(
+                            get: { noContactStartDate },
+                            set: { newValue in
+                                noContactStartDate = newValue
+                                didCustomizeNoContactStartDate = true
+                            }
+                        ),
+                        in: ...Date(),
+                        displayedComponents: [.date, .hourAndMinute]
+                    )
+                    .datePickerStyle(.compact)
+                    .labelsHidden()
+                    .tint(Color.brandPrimary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    .background(Color.cardSurfaceStrong, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+
+                    Text("You can change this anytime from Home. No pressure.")
+                        .font(.caption2)
+                        .foregroundStyle(Color.textOnPrimary.opacity(0.52))
+                }
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+        }
+        .padding(18)
+        .background(Color.cardSurfaceMuted, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .stroke(Color.white.opacity(0.35), lineWidth: 1)
+        )
+        .animation(.snappy, value: trackNoContact)
+    }
+
     private func primaryButton(_ label: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(label)
@@ -415,7 +482,7 @@ struct AuthView: View {
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
-                .background(Color.brandPrimary)
+                .background(Color.brandFill)
                 .clipShape(RoundedRectangle(cornerRadius: 18))
                 .shadow(color: Color.brandPrimary.opacity(0.25), radius: 10, y: 6)
         }
@@ -429,7 +496,7 @@ struct AuthView: View {
                 .foregroundStyle(Color.brandPrimary)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
-                .background(Color.white.opacity(0.68))
+                .background(Color.cardSurfaceMuted)
                 .clipShape(RoundedRectangle(cornerRadius: 18))
         }
     }
@@ -458,23 +525,38 @@ struct AuthView: View {
         step = max(step - 1, 0)
     }
 
+    private func refreshNoContactStartDateIfNeeded() {
+        guard !didCustomizeNoContactStartDate else { return }
+        noContactStartDate = Date()
+    }
+
     private func completeOnboarding() {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        userName     = trimmed.isEmpty ? "Friend" : trimmed
-        healingFocus = focusOptions
+        let focus = focusOptions
             .map(\.title)
             .filter { selectedFocuses.contains($0) }
             .joined(separator: ", ")
+
+        let profile = LocalProfileStore.createProfile(
+            displayName: trimmed.isEmpty ? "Friend" : trimmed,
+            healingFocus: focus
+        )
+        LocalProfileStore.activate(profile, signIn: false)
+
+        if selectedFocuses.contains("No contact"), trackNoContact {
+            let startDate = didCustomizeNoContactStartDate ? noContactStartDate : Date()
+            NoContactTracker.activate(
+                startDate: startDate,
+                goal: NoContactTracker.defaultGoal
+            )
+        }
+
         advance()
     }
 
     private var nameDisplay: String {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmed.isEmpty ? "" : ", \(trimmed)"
-    }
-
-    private func hideKeyboard() {
-        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
 }
 

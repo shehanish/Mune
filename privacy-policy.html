@@ -58,29 +58,31 @@
   <div class="container">
     <header>
       <h1>Privacy Policy</h1>
-      <p>Mend &nbsp;·&nbsp; Last updated: July 7, 2026</p>
+      <p>Mend &nbsp;·&nbsp; Last updated: August 25, 2026</p>
     </header>
 
     <p>Mend is a personal wellness app designed to help you track your mood, journal your thoughts, and receive gentle AI-powered reflections. Your privacy is fundamental to how this app was built.</p>
 
     <h2>1. What Data We Collect</h2>
-    <p><strong>Stored only on your device</strong> (never leaves your device unless described below):</p>
+    <p><strong>Stored on your device</strong> (stays local unless you use an AI feature below):</p>
     <ul>
       <li>Your name or nickname</li>
       <li>Profile photo</li>
       <li>Mood check-ins and any notes you write</li>
       <li>Journal entries and voice transcriptions</li>
       <li>App preferences (healing focus, reminder time, display settings)</li>
+      <li>No-contact streak settings and calm-space drawings you choose to save</li>
     </ul>
 
-    <p><strong>Sent to OpenAI when you use AI features:</strong></p>
+    <p><strong>Sent when you use AI features</strong> (mood reflections or Talk to Mend):</p>
     <ul>
-      <li>Aggregated mood counts (e.g. "Calm: 3, Anxious: 2") — not raw journal text</li>
-      <li>Your nickname (for personalised responses)</li>
-      <li>Chat messages you type in Talk to Mend</li>
-      <li>Brief journal context when you start a chat from a reflection</li>
+      <li>Your nickname</li>
+      <li>Mood labels and counts from recent check-ins</li>
+      <li>Optional check-in notes you wrote</li>
+      <li>Chat messages you type</li>
+      <li>Brief recent journal context (short journal snippets, transcript highlights, or gratitudes) when chat is personalized</li>
     </ul>
-    <p>This data is transmitted securely over HTTPS. We do not retain it on any server we operate. See <a href="https://openai.com/policies/privacy-policy" target="_blank">OpenAI's Privacy Policy</a>.</p>
+    <p>Requests go through a Cloudflare Worker proxy we operate, which forwards them to OpenAI over HTTPS. The proxy exists so an API key is not embedded in the app. See <a href="https://openai.com/policies/privacy-policy" target="_blank">OpenAI's Privacy Policy</a>.</p>
 
     <h2>2. How We Use Your Data</h2>
     <table>
@@ -90,24 +92,26 @@
       <tbody>
         <tr><td>Personalised greetings</td><td>Name / nickname</td><td>On your device</td></tr>
         <tr><td>Mood history and trends</td><td>Mood entries</td><td>On your device</td></tr>
-        <tr><td>AI mood reflections</td><td>Mood counts + name</td><td>Sent to OpenAI, not retained by us</td></tr>
-        <tr><td>AI chat support</td><td>Chat messages + name</td><td>Sent to OpenAI, not retained by us</td></tr>
+        <tr><td>AI mood reflections</td><td>Moods, optional notes, name</td><td>Sent via proxy to OpenAI</td></tr>
+        <tr><td>AI chat support</td><td>Chat messages, optional journal context, name</td><td>Sent via proxy to OpenAI</td></tr>
         <tr><td>Daily reminder notifications</td><td>Reminder time</td><td>On your device</td></tr>
         <tr><td>Profile photo display</td><td>Photo data</td><td>On your device</td></tr>
+        <tr><td>Optional feedback email</td><td>Message and photos you choose</td><td>Sent by you via Mail / Gmail</td></tr>
       </tbody>
     </table>
 
     <h2>3. What We Never Collect</h2>
     <ul>
       <li>Precise location</li>
-      <li>Device identifiers or advertising IDs</li>
-      <li>Analytics or third-party tracking data</li>
-      <li>Contact data (contacts are accessed only to place a phone call — nothing is stored by Mend)</li>
+      <li>Advertising identifiers for tracking</li>
+      <li>Analytics or third-party ad tracking</li>
+      <li>Cloud Mend accounts or passwords (Mend is local-first)</li>
     </ul>
 
     <h2>4. Third-Party Services</h2>
-    <p><strong>OpenAI, LLC</strong> — powers AI reflection and chat features. Relevant data is sent to OpenAI's servers in the United States when you use these features. You can opt out by not using the Chat or reflection features.</p>
-    <p>All other features (mood tracking, journal, notifications, voice transcription, photo picker) are handled by Apple's on-device frameworks. No other third-party services are used.</p>
+    <p><strong>Cloudflare Workers</strong> is used as a secure proxy for AI requests. We do not operate a general Mend user database.</p>
+    <p><strong>OpenAI, LLC</strong> powers AI reflection and chat. You can opt out by not using Chat or AI reflections.</p>
+    <p>Apple frameworks used on device include SwiftData, UserNotifications, the system Contacts picker, PhotosUI, and Speech (on-device recognition when available).</p>
 
     <h2>5. Permissions We Request</h2>
     <table>
@@ -116,35 +120,34 @@
       </thead>
       <tbody>
         <tr><td>Microphone</td><td>To record voice journal entries</td></tr>
-        <tr><td>Speech Recognition</td><td>To transcribe voice recordings into text (on-device)</td></tr>
-        <tr><td>Contacts</td><td>To let you call a friend from Calm Space — no data is stored</td></tr>
-        <tr><td>Photo Library</td><td>To let you set a profile photo — stays on your device</td></tr>
+        <tr><td>Speech Recognition</td><td>To transcribe voice recordings into text</td></tr>
+        <tr><td>Contacts</td><td>System picker so you can call a friend from Calm Space (Mend does not store contacts)</td></tr>
         <tr><td>Notifications</td><td>For optional daily check-in reminders</td></tr>
       </tbody>
     </table>
     <p>You can revoke any permission at any time in <strong>Settings → Privacy &amp; Security</strong> on your iPhone.</p>
 
-    <h2>6. Crisis Resources</h2>
+    <h2>6. Important health notice</h2>
     <div class="crisis-box">
-      <p>Mend is a wellness support tool — not a crisis service and not a replacement for professional mental health care. If you or someone you know is in crisis:</p>
+      <p>Mend is a breakup support and wellness tool. It is not therapy, not medical care, and not a crisis service. If you or someone you know is in crisis:</p>
       <ul style="margin-top:8px;">
-        <li><strong>988 Suicide &amp; Crisis Lifeline</strong> — call or text <strong>988</strong> (US, free, 24/7)</li>
-        <li><strong>Crisis Text Line</strong> — text HOME to <strong>741741</strong></li>
-        <li><strong>Emergency services</strong> — call <strong>911</strong> (or your local equivalent)</li>
+        <li><strong>Find a local helpline</strong>: <a href="https://www.iasp.info/suicidalthoughts/" rel="noopener">IASP Find a Helpline</a> (worldwide)</li>
+        <li><strong>Emergency services</strong>: call <strong>112</strong> in the EU (including Germany), or your local emergency number (for example <strong>911</strong> in the US)</li>
+        <li><strong>United States</strong>: call or text <strong>988</strong> (Suicide &amp; Crisis Lifeline)</li>
       </ul>
     </div>
 
     <h2>7. Children's Privacy</h2>
-    <p>Mend is not directed at children under 13. We do not knowingly collect personal information from children under 13. If you believe your child has used this app, please contact us and we will help remove any data.</p>
+    <p>Mend is not directed at children under 13. We do not knowingly collect personal information from children under 13.</p>
 
     <h2>8. Data Deletion</h2>
-    <p>All data stored on your device can be deleted by going to <strong>Profile → Sign Out</strong>, or by deleting the app. We do not retain any data on servers we control.</p>
+    <p>All data stored on your device can be deleted by leaving or deleting a local profile space, or by deleting the app. We do not keep a cloud copy of your journal.</p>
 
     <h2>9. Changes to This Policy</h2>
-    <p>We may update this Privacy Policy as the app evolves. The "Last updated" date at the top will reflect any changes. Continued use of the app after changes constitutes acceptance of the updated policy.</p>
+    <p>We may update this Privacy Policy as the app evolves. The "Last updated" date at the top will reflect any changes.</p>
 
     <h2>10. Contact</h2>
-    <p>Questions about this Privacy Policy? Contact us at: <a href="mailto:your-email@example.com">your-email@example.com</a></p>
+    <p>Questions about this Privacy Policy? Contact us at: <a href="mailto:shehani1207@gmail.com">shehani1207@gmail.com</a></p>
 
     <footer>
       <p>Mend &nbsp;·&nbsp; Built with care &nbsp;·&nbsp; Your thoughts are yours.</p>
