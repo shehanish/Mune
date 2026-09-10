@@ -97,7 +97,7 @@ final class HomeViewModel {
             await loadHomeSummary()
             await generateInsightForToday()
         } catch {
-            MendLog.debug("[HomeViewModel] apply failed: \(error)")
+            MuneLog.debug("[HomeViewModel] apply failed: \(error)")
             lastError = friendlyErrorMessage(for: error, fallback: "I couldn’t save that just now. When you’re ready, we can try again together.")
         }
     }
@@ -146,7 +146,7 @@ final class HomeViewModel {
                 latestCheckInText = "No check-ins yet. That’s okay."
             }
         } catch {
-            MendLog.debug("[HomeViewModel] loadHomeSummary failed: \(error)")
+            MuneLog.debug("[HomeViewModel] loadHomeSummary failed: \(error)")
             lastError = friendlyErrorMessage(for: error, fallback: "I couldn’t load your home summary right now. We can try again in a moment.")
         }
     }
@@ -338,11 +338,11 @@ final class HomeViewModel {
                 notes: latestNotes.isEmpty ? [] : [latestNotes]
             )
 
-            MendLog.debug("[HomeViewModel] reflection AI input latestEntry moodCount=\(counts.count) hasNote=\(!latestNotes.isEmpty)")
+            MuneLog.debug("[HomeViewModel] reflection AI input latestEntry moodCount=\(counts.count) hasNote=\(!latestNotes.isEmpty)")
 
             todayInsightText = try await aiService.generateMoodInsight(from: input, userName: userName)
         } catch {
-            MendLog.debug("[HomeViewModel] generateInsightForToday failed: \(error)")
+            MuneLog.debug("[HomeViewModel] generateInsightForToday failed: \(error)")
             lastError = friendlyErrorMessage(for: error, fallback: "I couldn’t gather a reflection just now. We can try again when you’re ready.")
             todayInsightText = "I hit a small snag reflecting with you. Let’s try again in a moment."
         }

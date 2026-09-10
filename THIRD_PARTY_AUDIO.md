@@ -1,6 +1,6 @@
 # Third-party audio
 
-## Calm Space soundscape — `Mend/calm_music.mp3`
+## Calm Space soundscape — `Mune/calm_music.mp3`
 
 | Field | Detail |
 |--------|--------|

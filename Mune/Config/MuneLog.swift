@@ -1,6 +1,6 @@
 import Foundation
 
-enum MendLog {
+enum MuneLog {
     static func debug(_ message: @autoclosure () -> String) {
         #if DEBUG
         print(message())

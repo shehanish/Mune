@@ -78,7 +78,7 @@ Choose your name and healing goals during onboarding — healing days, processin
 - All mood entries, journal entries, and profile data are stored **locally on your device** using SwiftData
 - AI features may send moods, optional notes, chat messages, and brief journal context to OpenAI through a secure proxy
 - No account required, no tracking, no third-party analytics
-- [Privacy Policy](https://shehanish.github.io/Mend/privacy-policy.html)
+- [Privacy Policy](https://shehanish.github.io/Mune/privacy-policy.html)
 
 ---
 
@@ -100,17 +100,17 @@ Choose your name and healing goals during onboarding — healing days, processin
 
 1. **Clone the repo**
    ```bash
-   git clone https://github.com/shehanish/Mend.git
-   cd Mend
+   git clone https://github.com/shehanish/Mune.git
+   cd Mune
    ```
 
 2. **Open in Xcode**
-   Open `Mend.xcodeproj`
+   Open `Mune.xcodeproj`
 
 3. **Configure the API key** *(optional — only needed for AI features)*
 
    The app uses a Cloudflare Workers proxy by default. To run AI features locally:
-   - Duplicate `Mend/Config/Secrets.example.xcconfig` → rename to `Secrets.xcconfig`
+   - Duplicate `Mune/Config/Secrets.example.xcconfig` → rename to `Secrets.xcconfig`
    - Add your OpenAI key: `MYAPI_KEY = sk-your-key-here`
    - In `AppConfig.swift`, set `proxyURL = nil` to call OpenAI directly
 
@@ -122,7 +122,7 @@ Choose your name and healing goals during onboarding — healing days, processin
 ## Project Structure
 
 ```
-Mend/
+Mune/
 ├── AI/                  OpenAI service + insight models
 ├── Config/              AppConfig, xcconfig files
 ├── Data/Repositories/   SwiftData repositories (mood, journal)

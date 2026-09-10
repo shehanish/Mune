@@ -26,6 +26,6 @@ project.xcworkspace/
 
 # Custom Configs for this app
 Config/Secrets.xcconfig
-Mend/Config/Secrets.xcconfig
-Mend-iosapp/Config/Secrets.xcconfig
+Mune/Config/Secrets.xcconfig
+Mune-iosapp/Config/Secrets.xcconfig
 **/Secrets.xcconfig

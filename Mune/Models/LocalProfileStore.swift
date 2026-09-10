@@ -143,7 +143,7 @@ enum LocalProfileStore {
 
             try context.save()
         } catch {
-            MendLog.debug("[LocalProfileStore] purgeSwiftData failed for \(profileID): \(error)")
+            MuneLog.debug("[LocalProfileStore] purgeSwiftData failed for \(profileID): \(error)")
         }
     }
 

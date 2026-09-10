@@ -42,7 +42,7 @@ struct ChipFlowLayout: Layout {
     }
 }
 
-struct MendChipLabel: View {
+struct MuneChipLabel: View {
     let title: String
     var isSelected: Bool = false
     var showsCheckmark: Bool = false

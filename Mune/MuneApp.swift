@@ -1,5 +1,5 @@
 //
-//  MendApp.swift
+//  MuneApp.swift
 //  Mend
 //
 //  Created by Shehani Hansika on 05.05.26.
@@ -9,7 +9,7 @@ import SwiftUI
 import SwiftData
 
 @main
-struct MendApp: App {
+struct MuneApp: App {
     @AppStorage("isLoggedIn") var isLoggedIn = false
     
     var body: some Scene {

@@ -132,7 +132,7 @@ struct SettingsView: View {
 
                         // MARK: Legal card
                         settingsCard(title: "Legal") {
-                            Link(destination: URL(string: "https://shehanish.github.io/Mend/privacy-policy.html")!) {
+                            Link(destination: URL(string: "https://shehanish.github.io/Mune/privacy-policy.html")!) {
                                 Label("Privacy Policy", systemImage: "hand.raised.fill")
                                     .font(.subheadline)
                                     .foregroundStyle(Color.brandPrimary)

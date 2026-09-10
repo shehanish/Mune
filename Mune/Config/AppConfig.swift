@@ -15,7 +15,7 @@ enum AppConfig {
     // Leave empty once you deploy the Supabase proxy.
     static var apiKey: String {
         guard let rawKey = Bundle.main.object(forInfoDictionaryKey: "MYAPI_KEY") as? String else {
-            MendLog.debug("[AppConfig] Warning: MYAPI_KEY not found in Info.plist.")
+            MuneLog.debug("[AppConfig] Warning: MYAPI_KEY not found in Info.plist.")
             return ""
         }
 
@@ -26,7 +26,7 @@ enum AppConfig {
         guard !key.isEmpty,
               !key.contains("put-your-key-here"),
               !key.contains("$(MYAPI_KEY)") else {
-            MendLog.debug("[AppConfig] Warning: MYAPI_KEY is missing or invalid ('\(key)'). AI features will be unavailable.")
+            MuneLog.debug("[AppConfig] Warning: MYAPI_KEY is missing or invalid ('\(key)'). AI features will be unavailable.")
             return ""
         }
 

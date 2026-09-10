@@ -119,7 +119,7 @@ We may update this Privacy Policy as the app evolves. When we do, we will update
 
 **Email:** shehani1207@gmail.com  
 **App:** Mune: Heal What’s Heavy on the Apple App Store  
-**Privacy page:** https://shehanish.github.io/Mend/privacy-policy.html
+**Privacy page:** https://shehanish.github.io/Mune/privacy-policy.html
 
 ---
 

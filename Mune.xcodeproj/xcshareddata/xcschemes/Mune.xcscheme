@@ -16,9 +16,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "0CE8CF042FAA21A600DD9E83"
-               BuildableName = "Mend.app"
-               BlueprintName = "Mend"
-               ReferencedContainer = "container:Mend.xcodeproj">
+               BuildableName = "Mune.app"
+               BlueprintName = "Mune"
+               ReferencedContainer = "container:Mune.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -45,9 +45,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "0CE8CF042FAA21A600DD9E83"
-            BuildableName = "Mend.app"
-            BlueprintName = "Mend"
-            ReferencedContainer = "container:Mend.xcodeproj">
+            BuildableName = "Mune.app"
+            BlueprintName = "Mune"
+            ReferencedContainer = "container:Mune.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -62,9 +62,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "0CE8CF042FAA21A600DD9E83"
-            BuildableName = "Mend.app"
-            BlueprintName = "Mend"
-            ReferencedContainer = "container:Mend.xcodeproj">
+            BuildableName = "Mune.app"
+            BlueprintName = "Mune"
+            ReferencedContainer = "container:Mune.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

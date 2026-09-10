@@ -98,7 +98,7 @@ enum FeedbackSender {
 
         for (index, image) in images.enumerated() {
             if let data = image.jpegData(compressionQuality: 0.72) {
-                composer.addAttachmentData(data, mimeType: "image/jpeg", fileName: "mend-feedback-\(index + 1).jpg")
+                composer.addAttachmentData(data, mimeType: "image/jpeg", fileName: "mune-feedback-\(index + 1).jpg")
             }
         }
 

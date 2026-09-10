@@ -148,7 +148,7 @@ final class JournalViewModel {
     }
 
     func loadHistory() async {
-        MendLog.debug("[JournalViewModel] loadHistory started for userID=\(userID)")
+        MuneLog.debug("[JournalViewModel] loadHistory started for userID=\(userID)")
 
         do {
             let now = Date()
@@ -169,10 +169,10 @@ final class JournalViewModel {
             historyEntries = try context.fetch(descriptor)
             rebuildTimelineEntries()
             rebuildHealingDashboard()
-            MendLog.debug("[JournalViewModel] loadHistory success moods=\(moodEntries.count) journalEntries=\(historyEntries.count) timeline=\(timelineEntries.count)")
+            MuneLog.debug("[JournalViewModel] loadHistory success moods=\(moodEntries.count) journalEntries=\(historyEntries.count) timeline=\(timelineEntries.count)")
         } catch {
             statusMessage = "I couldn’t load your journal just now. We can try again in a moment."
-            MendLog.debug("[JournalViewModel] loadHistory failed: \(error)")
+            MuneLog.debug("[JournalViewModel] loadHistory failed: \(error)")
         }
     }
 
@@ -193,11 +193,11 @@ final class JournalViewModel {
 
         guard !trimmedJournal.isEmpty || !trimmedTranscript.isEmpty || !trimmedGratitudeOne.isEmpty || !trimmedGratitudeTwo.isEmpty || !trimmedGratitudeThree.isEmpty else {
             statusMessage = "Add a journal note, a recording, or at least one gratitude before saving, whatever feels possible today."
-            MendLog.debug("[JournalViewModel] saveJournalEntry blocked: empty content")
+            MuneLog.debug("[JournalViewModel] saveJournalEntry blocked: empty content")
             return
         }
 
-        MendLog.debug("[JournalViewModel] saveJournalEntry started journal=\(!trimmedJournal.isEmpty) transcript=\(!trimmedTranscript.isEmpty) gratitudes=\(!trimmedGratitudeOne.isEmpty || !trimmedGratitudeTwo.isEmpty || !trimmedGratitudeThree.isEmpty)")
+        MuneLog.debug("[JournalViewModel] saveJournalEntry started journal=\(!trimmedJournal.isEmpty) transcript=\(!trimmedTranscript.isEmpty) gratitudes=\(!trimmedGratitudeOne.isEmpty || !trimmedGratitudeTwo.isEmpty || !trimmedGratitudeThree.isEmpty)")
 
         let entry = JournalEntry(
             userID: userID,
@@ -225,10 +225,10 @@ final class JournalViewModel {
             latestTranscript = ""
             selectedTemplateID = nil
             statusMessage = "Saved. I’m holding this with you."
-            MendLog.debug("[JournalViewModel] saveJournalEntry success journalEntries=\(historyEntries.count) timeline=\(timelineEntries.count)")
+            MuneLog.debug("[JournalViewModel] saveJournalEntry success journalEntries=\(historyEntries.count) timeline=\(timelineEntries.count)")
         } catch {
             statusMessage = "I couldn’t save that just now. We can try again when you’re ready."
-            MendLog.debug("[JournalViewModel] saveJournalEntry failed: \(error)")
+            MuneLog.debug("[JournalViewModel] saveJournalEntry failed: \(error)")
         }
     }
 
@@ -247,10 +247,10 @@ final class JournalViewModel {
             NotificationCenter.default.post(name: .journalEntriesDidChange, object: nil)
             await loadHistory()
             statusMessage = "That check-in has been removed."
-            MendLog.debug("[JournalViewModel] deleteMoodEntries success count=\(targets.count)")
+            MuneLog.debug("[JournalViewModel] deleteMoodEntries success count=\(targets.count)")
         } catch {
             statusMessage = "I couldn’t remove that check-in just now."
-            MendLog.debug("[JournalViewModel] deleteMoodEntries failed: \(error)")
+            MuneLog.debug("[JournalViewModel] deleteMoodEntries failed: \(error)")
         }
     }
 
@@ -269,10 +269,10 @@ final class JournalViewModel {
             NotificationCenter.default.post(name: .journalEntriesDidChange, object: nil)
             await loadHistory()
             statusMessage = "That page has been removed."
-            MendLog.debug("[JournalViewModel] deleteJournalEntries success count=\(targets.count)")
+            MuneLog.debug("[JournalViewModel] deleteJournalEntries success count=\(targets.count)")
         } catch {
             statusMessage = "I couldn’t remove that entry just now."
-            MendLog.debug("[JournalViewModel] deleteJournalEntries failed: \(error)")
+            MuneLog.debug("[JournalViewModel] deleteJournalEntries failed: \(error)")
         }
     }
 

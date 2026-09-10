@@ -47,7 +47,7 @@ private struct MoodChip: View {
 
     var body: some View {
         Button(action: action) {
-            MendChipLabel(
+            MuneChipLabel(
                 title: title,
                 isSelected: isSelected,
                 showsCheckmark: true,
