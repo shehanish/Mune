@@ -1,6 +1,6 @@
 //
-//  PanicRoomViewModel.swift
-//  Mend
+//  CalmSpaceViewModel.swift
+//  Mune
 //
 
 import SwiftUI
@@ -43,7 +43,7 @@ struct SavedDrawing: Identifiable, Codable, Equatable {
 }
 
 @Observable
-class PanicRoomViewModel {
+class CalmSpaceViewModel {
     var ventText = ""
     var doodleLines: [DoodleLine] = []
     var savedDrawings: [SavedDrawing] = []

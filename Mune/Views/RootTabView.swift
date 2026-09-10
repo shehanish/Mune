@@ -1,6 +1,6 @@
 //
 //  RootTabView.swift
-//  Mend
+//  Mune
 //
 //  Created by Shehani Hansika on 07.05.26.
 //
@@ -47,7 +47,7 @@ struct RootTabView: View {
                         .tabItem { Label("Journal", systemImage: "note.text") }
                         .tag(2)
                         
-                    PanicRoomView()
+                    CalmSpaceView()
                         .tabItem { Label("Calm Space", systemImage: "heart.fill") }
                         .tag(3)
                 }
@@ -60,6 +60,7 @@ struct RootTabView: View {
         .onAppear {
             LocalProfileStore.migrateLegacyIfNeeded()
             setupViewModels(force: false)
+            applyScreenshotLaunchArguments()
         }
         .onChange(of: activeProfileID) { _, newID in
             guard !newID.isEmpty, newID != boundProfileID else { return }
@@ -73,6 +74,17 @@ struct RootTabView: View {
             chatVM = nil
             journalVM = nil
             setupViewModels(force: true)
+        }
+    }
+
+    private func applyScreenshotLaunchArguments() {
+        let args = ProcessInfo.processInfo.arguments
+        if args.contains("-tab-chat") {
+            selectedTab = 1
+        } else if args.contains("-tab-journal") {
+            selectedTab = 2
+        } else if args.contains("-tab-calm") || args.contains("-open-urge-wave") {
+            selectedTab = 3
         }
     }
     

@@ -16,7 +16,7 @@ The following is stored locally using Apple's SwiftData framework and stays on y
 - **Mood check-ins** (mood selections and any notes you write)
 - **Journal entries** (written entries and voice transcriptions)
 - **App preferences** (healing focus, reminder time, display settings)
-- **Healing-days streak settings** and calm-space drawings you choose to save
+- **Healing-days settings** and calm-space drawings you choose to save
 
 ### Data sent when you use AI features
 When you use mood reflections or Talk to Mune chat, relevant content is sent over HTTPS to generate a response:
@@ -27,7 +27,7 @@ When you use mood reflections or Talk to Mune chat, relevant content is sent ove
 - Chat messages you type
 - Brief recent journal context (such as short journal snippets, transcript highlights, or gratitudes) when chat is personalized from your Home or Journal activity
 
-Requests go through a **Cloudflare Worker proxy we operate** (`mend-openai-proxy`), which forwards them to **OpenAI, LLC**. The proxy is used so an OpenAI API key is not embedded in the app. We do not use this proxy to build marketing profiles or sell your data.
+Requests go through a **Cloudflare Worker proxy we operate** (`mune-openai-proxy`), which forwards them to **OpenAI, LLC**. The proxy is used so an OpenAI API key is not embedded in the app. We do not use this proxy to build marketing profiles or sell your data.
 
 OpenAI's practices are governed by [OpenAI's Privacy Policy](https://openai.com/policies/privacy-policy).
 

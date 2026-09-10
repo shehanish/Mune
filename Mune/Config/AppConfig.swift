@@ -1,6 +1,6 @@
 //
 //  AppConfig.swift
-//  Mend
+//  Mune
 //
 //  Created by Shehani Hansika on 12.05.26.
 //
@@ -34,14 +34,14 @@ enum AppConfig {
     }
 
     // MARK: - AI Endpoint
-    // ─────────────────────────────────────────────────────────────────────
-    // Replace YOUR_PROJECT_REF with your Supabase project reference ID.
-    // Find it at: supabase.com → your project → Settings → General
-    // ─────────────────────────────────────────────────────────────────────────
-    static let proxyURL: String? = "https://mend-openai-proxy.shehani1207.workers.dev"
+    // Cloudflare Worker name must match this hostname (mune-openai-proxy).
+    static let proxyURL: String? = "https://mune-openai-proxy.shehani1207.workers.dev"
 
     /// Inbox that receives in-app feedback.
     static let feedbackEmail = "shehani1207@gmail.com"
+
+    /// Local notification identifier. Must not contain leftover brand names.
+    static let dailyReminderIdentifier = "mune.daily.reminder"
 
     /// Full chat-completions URL the service will call.
     static var chatEndpointURL: String {

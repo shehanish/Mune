@@ -1,22 +1,22 @@
 import SwiftUI
 import Combine
 
-enum NoContactTracker {
+enum HealingDaysTracker {
     /// Session keys used while a profile is active (shared AppStorage).
-    static let isActiveKey = "noContactIsActive"
-    static let startDateKey = "noContactStartDate"
-    static let goalKey = "noContactGoal"
+    static let isActiveKey = "healingDaysIsActive"
+    static let startDateKey = "healingDaysStartDate"
+    static let goalKey = "healingDaysGoal"
 
     /// Legacy unscoped keys (pre multi-profile).
-    static let legacyIsActiveKey = "noContactIsActive"
-    static let legacyStartDateKey = "noContactStartDate"
-    static let legacyGoalKey = "noContactGoal"
+    static let legacyIsActiveKey = "healingDaysIsActive"
+    static let legacyStartDateKey = "healingDaysStartDate"
+    static let legacyGoalKey = "healingDaysGoal"
 
     static let defaultGoal = "Unlimited / Not Decided"
 
-    static func isActiveKey(for profileID: String) -> String { "noContactIsActive.\(profileID)" }
-    static func startDateKey(for profileID: String) -> String { "noContactStartDate.\(profileID)" }
-    static func goalKey(for profileID: String) -> String { "noContactGoal.\(profileID)" }
+    static func isActiveKey(for profileID: String) -> String { "healingDaysIsActive.\(profileID)" }
+    static func startDateKey(for profileID: String) -> String { "healingDaysStartDate.\(profileID)" }
+    static func goalKey(for profileID: String) -> String { "healingDaysGoal.\(profileID)" }
 
     static func daysElapsed(since startDate: Date, to now: Date = .now) -> Int {
         let components = Calendar.current.dateComponents([.day], from: startDate, to: now)
@@ -85,7 +85,7 @@ enum NoContactTracker {
     }
 }
 
-struct NoContactHomeCard: View {
+struct HealingDaysHomeCard: View {
     let isActive: Bool
     let daysElapsed: Int
     let goal: String
@@ -94,7 +94,7 @@ struct NoContactHomeCard: View {
     private var subtitle: String {
         if isActive {
             if goal.isEmpty || goal.contains("Unlimited") || goal.contains("Not Decided") {
-                return daysElapsed == 1 ? "1 day strong. Tap to view" : "\(daysElapsed) days strong. Tap to view"
+                return daysElapsed == 1 ? "1 gentle day. Tap when you’d like to look" : "\(daysElapsed) gentle days. Tap when you’d like to look"
             }
             return "Goal: \(goal). Tap when you’d like to look"
         }
@@ -141,12 +141,12 @@ struct NoContactHomeCard: View {
             .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 4)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(isActive ? "Healing days, \(daysElapsed) days" : "Start healing days tracker")
-        .accessibilityHint("Opens healing days tracker")
+        .accessibilityLabel(isActive ? "Healing days, \(daysElapsed) days" : "Set up healing days")
+        .accessibilityHint("Opens healing days")
     }
 }
 
-struct NoContactSetupSheet: View {
+struct HealingDaysSetupSheet: View {
     @Binding var selectedDate: Date
     @Binding var selectedPeriod: String?
     var onSave: () -> Void

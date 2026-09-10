@@ -1,6 +1,6 @@
 //
 //  MuneApp.swift
-//  Mend
+//  Mune
 //
 //  Created by Shehani Hansika on 05.05.26.
 //

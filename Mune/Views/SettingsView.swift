@@ -1,6 +1,6 @@
 //
 //  SettingsView.swift
-//  Mend
+//  Mune
 //
 //  Created by GitHub Copilot.
 //
@@ -94,11 +94,11 @@ struct SettingsView: View {
                                 get: { saveDrawingsEnabled },
                                 set: { newValue in
                                     saveDrawingsEnabled = newValue
-                                    let profileID = PanicRoomViewModel.currentProfileID()
-                                    UserDefaults.standard.set(newValue, forKey: PanicRoomViewModel.enabledKey(for: profileID))
-                                    UserDefaults.standard.set(newValue, forKey: PanicRoomViewModel.saveDrawingsEnabledKey)
+                                    let profileID = CalmSpaceViewModel.currentProfileID()
+                                    UserDefaults.standard.set(newValue, forKey: CalmSpaceViewModel.enabledKey(for: profileID))
+                                    UserDefaults.standard.set(newValue, forKey: CalmSpaceViewModel.saveDrawingsEnabledKey)
                                     if !newValue {
-                                        PanicRoomViewModel.clearDrawings(for: profileID)
+                                        CalmSpaceViewModel.clearDrawings(for: profileID)
                                     }
                                 }
                             ))
@@ -207,12 +207,12 @@ struct SettingsView: View {
     // MARK: - Notification helpers
 
     private func loadState() {
-        PanicRoomViewModel.migrateUnscopedDrawingsIfNeeded()
-        let profileID = PanicRoomViewModel.currentProfileID()
-        if let stored = UserDefaults.standard.object(forKey: PanicRoomViewModel.enabledKey(for: profileID)) as? Bool {
+        CalmSpaceViewModel.migrateUnscopedDrawingsIfNeeded()
+        let profileID = CalmSpaceViewModel.currentProfileID()
+        if let stored = UserDefaults.standard.object(forKey: CalmSpaceViewModel.enabledKey(for: profileID)) as? Bool {
             saveDrawingsEnabled = stored
         } else {
-            saveDrawingsEnabled = UserDefaults.standard.bool(forKey: PanicRoomViewModel.saveDrawingsEnabledKey)
+            saveDrawingsEnabled = UserDefaults.standard.bool(forKey: CalmSpaceViewModel.saveDrawingsEnabledKey)
         }
 
         // Restore reminder time picker from saved hour/minute
@@ -248,7 +248,7 @@ struct SettingsView: View {
 
     private func scheduleReminder(hour: Int, minute: Int) {
         let center = UNUserNotificationCenter.current()
-        center.removePendingNotificationRequests(withIdentifiers: ["mend.daily.reminder"])
+        center.removePendingNotificationRequests(withIdentifiers: [AppConfig.dailyReminderIdentifier])
 
         let content          = UNMutableNotificationContent()
         content.title        = "A soft check-in 🌿"
@@ -260,14 +260,14 @@ struct SettingsView: View {
         dateComponents.minute = minute
 
         let trigger          = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
-        let request          = UNNotificationRequest(identifier: "mend.daily.reminder", content: content, trigger: trigger)
+        let request          = UNNotificationRequest(identifier: AppConfig.dailyReminderIdentifier, content: content, trigger: trigger)
 
         center.add(request)
     }
 
     private func cancelReminder() {
         UNUserNotificationCenter.current()
-            .removePendingNotificationRequests(withIdentifiers: ["mend.daily.reminder"])
+            .removePendingNotificationRequests(withIdentifiers: [AppConfig.dailyReminderIdentifier])
     }
 }
 

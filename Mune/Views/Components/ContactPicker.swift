@@ -1,6 +1,6 @@
 //
 //  ContactPicker.swift
-//  Mend
+//  Mune
 //
 //  Created by Shehani Hansika on 29.05.26.
 //

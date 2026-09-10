@@ -1,6 +1,6 @@
 //
 //  AIInsightService.swift
-//  Mend
+//  Mune
 //
 //  Created by Shehani Hansika on 12.05.26.
 //

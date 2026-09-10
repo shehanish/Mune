@@ -1,6 +1,6 @@
 //
 //  JournalViewModel.swift
-//  Mend
+//  Mune
 //
 //  Created by Shehani Hansika on 07.07.26.
 //

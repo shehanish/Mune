@@ -155,9 +155,9 @@ struct WelcomeView: View {
     private var guestHighlights: some View {
         VStack(spacing: 12) {
             WelcomeFeatureRow(
-                icon: "leaf.fill",
-                title: "Gentle healing-day support",
-                subtitle: "I’ll sit with you when the urge to reach out feels loud"
+                icon: "water.waves",
+                title: "Ride the urge, don’t send it",
+                subtitle: "A two-minute pause when you want to text them"
             )
             WelcomeFeatureRow(
                 icon: "heart.circle.fill",

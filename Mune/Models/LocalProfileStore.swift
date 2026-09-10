@@ -1,6 +1,6 @@
 //
 //  LocalProfileStore.swift
-//  Mend
+//  Mune
 //
 //  Local multi-profile sessions (no cloud accounts).
 //  Each profile keeps its own SwiftData userID + preferences.
@@ -105,12 +105,12 @@ enum LocalProfileStore {
         defaults.removeObject(forKey: healingFocusKey(for: profileID))
         defaults.removeObject(forKey: profileImageKey(for: profileID))
 
-        defaults.removeObject(forKey: NoContactTracker.isActiveKey(for: profileID))
-        defaults.removeObject(forKey: NoContactTracker.startDateKey(for: profileID))
-        defaults.removeObject(forKey: NoContactTracker.goalKey(for: profileID))
+        defaults.removeObject(forKey: HealingDaysTracker.isActiveKey(for: profileID))
+        defaults.removeObject(forKey: HealingDaysTracker.startDateKey(for: profileID))
+        defaults.removeObject(forKey: HealingDaysTracker.goalKey(for: profileID))
 
-        PanicRoomViewModel.clearDrawings(for: profileID)
-        defaults.removeObject(forKey: PanicRoomViewModel.enabledKey(for: profileID))
+        CalmSpaceViewModel.clearDrawings(for: profileID)
+        defaults.removeObject(forKey: CalmSpaceViewModel.enabledKey(for: profileID))
 
         if activeProfileID == profileID {
             activeProfileID = ""
@@ -118,7 +118,7 @@ enum LocalProfileStore {
             defaults.set("", forKey: "userName")
             defaults.set("", forKey: "healingFocus")
             defaults.set(Data(), forKey: "profileImageData")
-            NoContactTracker.clearSessionKeys()
+            HealingDaysTracker.clearSessionKeys()
         }
     }
 
@@ -165,7 +165,7 @@ enum LocalProfileStore {
         let imageData = UserDefaults.standard.data(forKey: profileImageKey(for: profile.id)) ?? Data()
         UserDefaults.standard.set(imageData, forKey: "profileImageData")
 
-        NoContactTracker.loadScopedIntoSession(for: profile.id)
+        HealingDaysTracker.loadScopedIntoSession(for: profile.id)
 
         if signIn {
             UserDefaults.standard.set(true, forKey: "isLoggedIn")
@@ -180,7 +180,7 @@ enum LocalProfileStore {
         UserDefaults.standard.set("", forKey: "userName")
         UserDefaults.standard.set("", forKey: "healingFocus")
         UserDefaults.standard.set(Data(), forKey: "profileImageData")
-        NoContactTracker.clearSessionKeys()
+        HealingDaysTracker.clearSessionKeys()
     }
 
     static func persistActiveSessionToScopedStorage() {
@@ -195,7 +195,7 @@ enum LocalProfileStore {
         let imageData = UserDefaults.standard.data(forKey: "profileImageData") ?? Data()
         UserDefaults.standard.set(imageData, forKey: profileImageKey(for: profileID))
 
-        NoContactTracker.persistSessionIntoScoped(for: profileID)
+        HealingDaysTracker.persistSessionIntoScoped(for: profileID)
     }
 
     // MARK: - Migration
@@ -212,9 +212,9 @@ enum LocalProfileStore {
                 .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             let legacyFocus = UserDefaults.standard.string(forKey: "healingFocus") ?? ""
             let wasLoggedIn = UserDefaults.standard.bool(forKey: "isLoggedIn")
-            let hasLegacyNoContact = UserDefaults.standard.object(forKey: NoContactTracker.legacyIsActiveKey) != nil
+            let hasLegacyHealingDays = UserDefaults.standard.object(forKey: HealingDaysTracker.legacyIsActiveKey) != nil
 
-            if wasLoggedIn || !legacyName.isEmpty || hasLegacyNoContact {
+            if wasLoggedIn || !legacyName.isEmpty || hasLegacyHealingDays {
                 let profile = Profile(
                     id: legacyUserID,
                     displayName: legacyName.isEmpty ? "Friend" : legacyName,
@@ -228,7 +228,7 @@ enum LocalProfileStore {
                     UserDefaults.standard.set(image, forKey: profileImageKey(for: profile.id))
                 }
 
-                NoContactTracker.migrateLegacyKeysIfNeeded(into: profile.id)
+                HealingDaysTracker.migrateLegacyKeysIfNeeded(into: profile.id)
 
                 if wasLoggedIn {
                     activeProfileID = profile.id

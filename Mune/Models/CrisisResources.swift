@@ -1,6 +1,6 @@
 //
 //  CrisisResources.swift
-//  Mend
+//  Mune
 //
 //  Worldwide-first crisis links. Prefer IASP over a single-country hotline.
 //

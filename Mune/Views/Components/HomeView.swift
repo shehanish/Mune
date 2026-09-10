@@ -1,6 +1,6 @@
 //
-//  ContentView.swift
-//  Mend
+//  HomeView.swift
+//  Mune
 //
 //  Created by Shehani Hansika on 05.05.26.
 //
@@ -24,14 +24,14 @@ struct HomeView: View {
     @AppStorage("userName") private var userName = "Friend"
     @AppStorage("healingFocus") private var healingFocus = ""
     @AppStorage("profileImageData") private var profileImageData: Data = Data()
-    @AppStorage(NoContactTracker.isActiveKey) private var noContactIsActive = false
-    @AppStorage(NoContactTracker.startDateKey) private var noContactStartDateInterval: Double = 0
-    @AppStorage(NoContactTracker.goalKey) private var noContactGoal = ""
+    @AppStorage(HealingDaysTracker.isActiveKey) private var healingDaysIsActive = false
+    @AppStorage(HealingDaysTracker.startDateKey) private var healingDaysStartDateInterval: Double = 0
+    @AppStorage(HealingDaysTracker.goalKey) private var healingDaysGoal = ""
     @State private var showProfileSheet = false
     @State private var showSettingsSheet = false
     @State private var showFeedbackSheet = false
     @State private var showLogoutConfirmation = false
-    @State private var showNoContactSheet = false
+    @State private var showHealingDaysSheet = false
     
     private let moods = [
         "Calm", "Sad", "Angry", "Anxious",
@@ -75,20 +75,20 @@ struct HomeView: View {
         return formatter.string(from: Date())
     }
 
-    private var noContactDays: Int {
-        guard noContactIsActive,
-              let startDate = NoContactTracker.startDate(from: noContactStartDateInterval) else {
+    private var healingDaysCount: Int {
+        guard healingDaysIsActive,
+              let startDate = HealingDaysTracker.startDate(from: healingDaysStartDateInterval) else {
             return 0
         }
-        return NoContactTracker.daysElapsed(since: startDate)
+        return HealingDaysTracker.daysElapsed(since: startDate)
     }
 
-    private var noContactTrackSubtitle: String {
-        if noContactIsActive {
-            if noContactDays == 1 {
+    private var healingDaysSubtitle: String {
+        if healingDaysIsActive {
+            if healingDaysCount == 1 {
                 return "1 gentle day. Tap when you’d like to look"
             }
-            return "\(noContactDays) gentle days. Tap when you’d like to look"
+            return "\(healingDaysCount) gentle days. Tap when you’d like to look"
         }
         return "Your healing days can wait until you’re ready"
     }
@@ -96,8 +96,8 @@ struct HomeView: View {
     private var healingFocusTip: HealingFocusTip {
         HealingFocusTipBuilder.tip(
             healingFocusRaw: healingFocus,
-            noContactIsActive: noContactIsActive,
-            noContactDays: noContactDays
+            healingDaysIsActive: healingDaysIsActive,
+            healingDaysCount: healingDaysCount
         )
     }
     
@@ -262,7 +262,7 @@ struct HomeView: View {
         .sheet(isPresented: $showFeedbackSheet) {
             FeedbackView()
         }
-        .sheet(isPresented: $showNoContactSheet) {
+        .sheet(isPresented: $showHealingDaysSheet) {
             CounterView(showsDismissButton: true)
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
@@ -401,8 +401,8 @@ struct HomeView: View {
 
     private func handleHealingFocusTip(_ tip: HealingFocusTip, proxy: ScrollViewProxy) {
         switch tip.destination {
-        case .noContact:
-            showNoContactSheet = true
+        case .healingDays:
+            showHealingDaysSheet = true
         case .calmSpace:
             selectedTab = 3
         case .journal:
@@ -418,9 +418,9 @@ struct HomeView: View {
         let insight = vm.weeklyTrackInsight
 
         return VStack(alignment: .leading, spacing: 14) {
-            // Compact no-contact progress
+            // Compact healing-days progress
             Button {
-                showNoContactSheet = true
+                showHealingDaysSheet = true
             } label: {
                 HStack(spacing: 12) {
                     Image(systemName: "leaf.fill")
@@ -434,15 +434,15 @@ struct HomeView: View {
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(Color.brandPrimary)
 
-                        Text(noContactTrackSubtitle)
+                        Text(healingDaysSubtitle)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
 
                     Spacer()
 
-                    if noContactIsActive {
-                        Text("\(noContactDays)")
+                    if healingDaysIsActive {
+                        Text("\(healingDaysCount)")
                             .font(.title3.weight(.bold).monospacedDigit())
                             .foregroundStyle(Color.sageGreen)
                     }
@@ -455,7 +455,7 @@ struct HomeView: View {
                 .background(Color.cardSurface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(noContactIsActive ? "Healing days, \(noContactDays) days" : "Start healing days tracker")
+            .accessibilityLabel(healingDaysIsActive ? "Healing days, \(healingDaysCount) days" : "Set up healing days")
 
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
@@ -508,8 +508,8 @@ struct HomeView: View {
 
     private func handleTrackInsight(destination: HealingFocusTipDestination, proxy: ScrollViewProxy) {
         switch destination {
-        case .noContact:
-            showNoContactSheet = true
+        case .healingDays:
+            showHealingDaysSheet = true
         case .calmSpace:
             selectedTab = 3
         case .journal:

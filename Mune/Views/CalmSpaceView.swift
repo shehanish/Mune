@@ -1,17 +1,18 @@
 //
-//  PanicRoomView.swift
-//  Mend
+//  CalmSpaceView.swift
+//  Mune
 //
 
 import SwiftUI
 
-struct PanicRoomView: View {
-    @State private var vm = PanicRoomViewModel()
+struct CalmSpaceView: View {
+    @State private var vm = CalmSpaceViewModel()
     @AppStorage("activeProfileID") private var activeProfileID = ""
     @Environment(\.dismiss) var dismiss
     @State private var showContactPicker = false
     @State private var showDrawingPad = false
     @State private var showDrawingFolder = false
+    @State private var showUrgeWave = false
 
     var body: some View {
         NavigationStack {
@@ -33,6 +34,42 @@ struct PanicRoomView: View {
                         }
                         .padding(.horizontal)
                         .padding(.top, 16)
+
+                        Button {
+                            showUrgeWave = true
+                        } label: {
+                            HStack(spacing: 14) {
+                                Image(systemName: "water.waves")
+                                    .font(.title2)
+                                    .foregroundStyle(Color.brandPrimary)
+                                    .frame(width: 44, height: 44)
+                                    .background(Color.brandPrimary.opacity(0.12))
+                                    .clipShape(Circle())
+
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("I want to reach out")
+                                        .font(.headline)
+                                        .foregroundStyle(Color.brandPrimary)
+                                    Text("A 2-minute pause so the urge can pass without a text. Nothing is saved or sent.")
+                                        .font(.caption)
+                                        .foregroundStyle(Color.brandPrimary.opacity(0.7))
+                                        .multilineTextAlignment(.leading)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+
+                                Spacer()
+
+                                Image(systemName: "chevron.right")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(Color.brandPrimary.opacity(0.45))
+                            }
+                            .padding(16)
+                            .background(Color.cardSurfaceMuted)
+                            .clipShape(RoundedRectangle(cornerRadius: 24))
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.horizontal)
+                        .accessibilityLabel("I want to reach out. A two minute pause so the urge can pass without a text.")
 
                         VStack(spacing: 16) {
                             Text("Breathe with me")
@@ -343,6 +380,14 @@ struct PanicRoomView: View {
             .sheet(isPresented: $showContactPicker) {
                 ContactPicker()
             }
+            .fullScreenCover(isPresented: $showUrgeWave) {
+                UrgeWaveView()
+            }
+            .onAppear {
+                if ProcessInfo.processInfo.arguments.contains("-open-urge-wave") {
+                    showUrgeWave = true
+                }
+            }
         }
     }
 
@@ -391,11 +436,11 @@ struct PanicRoomView: View {
 }
 
 #Preview {
-    PanicRoomView()
+    CalmSpaceView()
 }
 
 private struct DrawingPadSheet: View {
-    @State var vm: PanicRoomViewModel
+    @State var vm: CalmSpaceViewModel
     @Environment(\.dismiss) private var dismiss
 
     @State private var canvasSize: CGSize = .zero
@@ -507,7 +552,7 @@ private struct DrawingPadSheet: View {
 }
 
 private struct SavedDrawingsFolderSheet: View {
-    @State var vm: PanicRoomViewModel
+    @State var vm: CalmSpaceViewModel
     var onOpenDrawing: () -> Void
 
     @Environment(\.dismiss) private var dismiss

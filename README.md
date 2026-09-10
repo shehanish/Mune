@@ -63,7 +63,7 @@ Have a real conversation with AI that understands breakup recovery — grief, ha
 Process the breakup in writing or by voice. Log gratitudes and reflect on what you're learning. Your journal stays entirely on your device using SwiftData.
 
 **Calm Space**
-For the moments you want to text them, checked their socials, or feel like day one again. Includes guided breathing, 5-4-3-2-1 grounding, a private vent pad (say it without sending it), a drawing canvas, a call-a-friend contact picker, and worldwide crisis links (IASP Find a Helpline + local emergency).
+For the moments you want to text them, checked their socials, or feel like day one again. Includes Ride this wave (a 2-minute urge-pause that is never saved or sent), guided breathing, 5-4-3-2-1 grounding, a private vent pad, a drawing canvas, a call-a-friend contact picker, and worldwide crisis links (IASP Find a Helpline + local emergency).
 
 **Healing days**
 Optionally track gentle days of space from your ex as a quiet reminder you’re caring for yourself — not as a streak-pressure tool.
@@ -133,7 +133,7 @@ Mune/
     ├── AuthView         Onboarding flow
     ├── ChatView         AI chat
     ├── JournalView      Journal + history
-    ├── PanicRoomView    Calm Space
+    ├── CalmSpaceView    Calm Space
     └── SettingsView     Notifications + preferences
 ```
 

@@ -1,6 +1,6 @@
 //
 //  ChatMessage.swift
-//  Mend
+//  Mune
 //
 //  Created by Shehani Hansika on 18.05.26.
 //

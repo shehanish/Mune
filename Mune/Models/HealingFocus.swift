@@ -1,6 +1,6 @@
 //
 //  HealingFocus.swift
-//  Mend
+//  Mune
 //
 //  Light personalization from onboarding focuses — one Home tip, not a full theme engine.
 //
@@ -8,7 +8,7 @@
 import Foundation
 
 enum HealingFocus: String, CaseIterable {
-    case noContact = "Healing days"
+    case healingDays = "Healing days"
     case processGrief = "Process the grief"
     case hardMoments = "Hard moments"
     case rebuildRoutine = "Rebuild my routine"
@@ -21,7 +21,7 @@ enum HealingFocus: String, CaseIterable {
 
         return Set(parts.compactMap { part in
             if part == "No contact" || part == "Healing days" {
-                return .noContact
+                return .healingDays
             }
             return HealingFocus(rawValue: part)
         })
@@ -29,7 +29,7 @@ enum HealingFocus: String, CaseIterable {
 }
 
 enum HealingFocusTipDestination {
-    case noContact
+    case healingDays
     case calmSpace
     case journal
     case checkIn
@@ -47,15 +47,15 @@ enum HealingFocusTipBuilder {
     /// Prefer acute support first when someone picked several focuses.
     private static let priority: [HealingFocus] = [
         .hardMoments,
-        .noContact,
+        .healingDays,
         .processGrief,
         .rebuildRoutine
     ]
 
     static func tip(
         healingFocusRaw: String,
-        noContactIsActive: Bool,
-        noContactDays: Int
+        healingDaysIsActive: Bool,
+        healingDaysCount: Int
     ) -> HealingFocusTip {
         let focuses = HealingFocus.parse(healingFocusRaw)
         let chosen = priority.first(where: { focuses.contains($0) }) ?? focuses.first
@@ -64,21 +64,21 @@ enum HealingFocusTipBuilder {
         case .hardMoments:
             return HealingFocusTip(
                 title: "Feeling the urge?",
-                message: "If you want to text them, come into Calm Space with me. We’ll ride this wave together. Nothing has to be sent.",
+                message: "If you want to text them, open Ride this wave in Calm Space. Two minutes. Nothing has to be sent.",
                 actionLabel: "Come to Calm Space",
                 icon: "heart.circle.fill",
                 destination: .calmSpace
             )
 
-        case .noContact:
-            if noContactIsActive {
-                let dayText = noContactDays == 1 ? "1 gentle day" : "\(noContactDays) gentle days"
+        case .healingDays:
+            if healingDaysIsActive {
+                let dayText = healingDaysCount == 1 ? "1 gentle day" : "\(healingDaysCount) gentle days"
                 return HealingFocusTip(
                     title: "Healing days",
                     message: "You’re on \(dayText). Peek anytime you need a quiet reminder you’re caring for yourself.",
                     actionLabel: "See healing days",
                     icon: "leaf.fill",
-                    destination: .noContact
+                    destination: .healingDays
                 )
             }
             return HealingFocusTip(
@@ -86,7 +86,7 @@ enum HealingFocusTipBuilder {
                 message: "When you’re ready, we can track your gentle days so hard moments feel a little less alone.",
                 actionLabel: "See healing days",
                 icon: "leaf.fill",
-                destination: .noContact
+                destination: .healingDays
             )
 
         case .processGrief:

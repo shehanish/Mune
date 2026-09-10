@@ -24,6 +24,8 @@
     <string>We use speech recognition to turn your recorded journal into text.</string>
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
+    <key>LSRequiresIPhoneOS</key>
+    <true/>
     <key>LSApplicationQueriesSchemes</key>
     <array>
         <string>googlegmail</string>
@@ -34,10 +36,7 @@
     <string></string>
     <key>UISupportedInterfaceOrientations</key>
     <array>
-        <string>UIInterfaceOrientationLandscapeLeft</string>
-        <string>UIInterfaceOrientationLandscapeRight</string>
         <string>UIInterfaceOrientationPortrait</string>
-        <string>UIInterfaceOrientationPortraitUpsideDown</string>
     </array>
 </dict>
 </plist>

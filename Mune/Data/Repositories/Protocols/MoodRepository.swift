@@ -1,6 +1,6 @@
 //
 //  MoodRepository.swift
-//  Mend
+//  Mune
 //
 //  Created by Shehani Hansika on 09.05.26.
 //

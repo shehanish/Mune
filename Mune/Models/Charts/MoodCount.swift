@@ -1,6 +1,6 @@
 //
 //  MoodCount.swift
-//  Mend
+//  Mune
 //
 //  Created by Shehani Hansika on 11.05.26.
 //

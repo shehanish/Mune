@@ -1,0 +1,6 @@
+name = "mune-openai-proxy"
+main = "src/index.js"
+compatibility_date = "2026-09-10"
+
+[vars]
+# OPENAI_API_KEY is set with: npx wrangler secret put OPENAI_API_KEY

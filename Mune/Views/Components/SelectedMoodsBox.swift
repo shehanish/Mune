@@ -1,6 +1,6 @@
 //
 //  SelectedMoodsBox.swift
-//  Mend
+//  Mune
 //
 //  Created by Shehani Hansika on 07.05.26.
 //

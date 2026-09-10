@@ -17,9 +17,9 @@ struct AuthView: View {
     @State private var name          = ""
     @State private var step          = 0           // 0 = welcome, 1 = name, 2 = focus, 3 = complete
     @State private var selectedFocuses: Set<String> = ["Healing days"]
-    @State private var trackNoContact = true
-    @State private var noContactStartDate = Date()
-    @State private var didCustomizeNoContactStartDate = false
+    @State private var trackHealingDays = true
+    @State private var healingDaysStartDate = Date()
+    @State private var didCustomizeHealingDaysStartDate = false
     @State private var showNameError = false
     @State private var goingForward  = true
 
@@ -97,16 +97,16 @@ struct AuthView: View {
                 focuses.insert("Healing days")
             }
             selectedFocuses = focuses
-            refreshNoContactStartDateIfNeeded()
+            refreshHealingDaysStartDateIfNeeded()
         }
         .onChange(of: step) { _, newStep in
             if newStep == 2 {
-                refreshNoContactStartDateIfNeeded()
+                refreshHealingDaysStartDateIfNeeded()
             }
         }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
-                refreshNoContactStartDateIfNeeded()
+                refreshHealingDaysStartDateIfNeeded()
             }
         }
     }
@@ -253,7 +253,7 @@ struct AuthView: View {
                 .padding(.horizontal, 24)
 
                 if selectedFocuses.contains("Healing days") || selectedFocuses.contains("No contact") {
-                    noContactSetupSection
+                    healingDaysSetupSection
                         .padding(.horizontal, 24)
                         .padding(.top, 20)
                         .transition(.opacity.combined(with: .move(edge: .top)))
@@ -408,7 +408,7 @@ struct AuthView: View {
         .accessibilityAddTraits(isSelected ? [.isSelected] : [])
     }
 
-    private var noContactSetupSection: some View {
+    private var healingDaysSetupSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .center, spacing: 12) {
                 Image(systemName: "calendar.badge.clock")
@@ -431,13 +431,13 @@ struct AuthView: View {
 
                 Spacer(minLength: 8)
 
-                Toggle("", isOn: $trackNoContact)
+                Toggle("", isOn: $trackHealingDays)
                     .labelsHidden()
                     .tint(Color.brandPrimary)
                     .accessibilityLabel("Gently track my healing days")
             }
 
-            if trackNoContact {
+            if trackHealingDays {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("When was the last contact?")
                         .font(.caption.weight(.semibold))
@@ -446,10 +446,10 @@ struct AuthView: View {
                     DatePicker(
                         "When was the last contact?",
                         selection: Binding(
-                            get: { noContactStartDate },
+                            get: { healingDaysStartDate },
                             set: { newValue in
-                                noContactStartDate = newValue
-                                didCustomizeNoContactStartDate = true
+                                healingDaysStartDate = newValue
+                                didCustomizeHealingDaysStartDate = true
                             }
                         ),
                         in: ...Date(),
@@ -476,7 +476,7 @@ struct AuthView: View {
             RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .stroke(Color.white.opacity(0.35), lineWidth: 1)
         )
-        .animation(.snappy, value: trackNoContact)
+        .animation(.snappy, value: trackHealingDays)
     }
 
     private func primaryButton(_ label: String, action: @escaping () -> Void) -> some View {
@@ -530,9 +530,9 @@ struct AuthView: View {
         step = max(step - 1, 0)
     }
 
-    private func refreshNoContactStartDateIfNeeded() {
-        guard !didCustomizeNoContactStartDate else { return }
-        noContactStartDate = Date()
+    private func refreshHealingDaysStartDateIfNeeded() {
+        guard !didCustomizeHealingDaysStartDate else { return }
+        healingDaysStartDate = Date()
     }
 
     private func completeOnboarding() {
@@ -548,11 +548,11 @@ struct AuthView: View {
         )
         LocalProfileStore.activate(profile, signIn: false)
 
-        if (selectedFocuses.contains("Healing days") || selectedFocuses.contains("No contact")), trackNoContact {
-            let startDate = didCustomizeNoContactStartDate ? noContactStartDate : Date()
-            NoContactTracker.activate(
+        if (selectedFocuses.contains("Healing days") || selectedFocuses.contains("No contact")), trackHealingDays {
+            let startDate = didCustomizeHealingDaysStartDate ? healingDaysStartDate : Date()
+            HealingDaysTracker.activate(
                 startDate: startDate,
-                goal: NoContactTracker.defaultGoal
+                goal: HealingDaysTracker.defaultGoal
             )
         }
 

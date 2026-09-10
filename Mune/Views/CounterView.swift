@@ -1,6 +1,6 @@
 //
 //  CounterView.swift
-//  Mend
+//  Mune
 //
 //  Created by Shehani Hansika on 07.05.26.
 //
@@ -13,16 +13,16 @@ struct CounterView: View {
 
     @Environment(\.dismiss) private var dismiss
 
-    @AppStorage(NoContactTracker.isActiveKey) private var isTrackerActive = false
-    @AppStorage(NoContactTracker.startDateKey) private var startDateInterval: Double = 0
-    @AppStorage(NoContactTracker.goalKey) private var storedGoal: String = ""
+    @AppStorage(HealingDaysTracker.isActiveKey) private var isTrackerActive = false
+    @AppStorage(HealingDaysTracker.startDateKey) private var startDateInterval: Double = 0
+    @AppStorage(HealingDaysTracker.goalKey) private var storedGoal: String = ""
 
     @State private var showSetupSheet = false
     @State private var selectedDate: Date = .now
     @State private var selectedPeriod: String?
 
     private var startDate: Date {
-        NoContactTracker.startDate(from: startDateInterval) ?? .now
+        HealingDaysTracker.startDate(from: startDateInterval) ?? .now
     }
 
     var body: some View {
@@ -33,7 +33,7 @@ struct CounterView: View {
 
                 if isTrackerActive {
                     ActiveTrackerView(startDate: startDate, goal: storedGoal.isEmpty ? nil : storedGoal) {
-                        NoContactTracker.reset()
+                        HealingDaysTracker.reset()
                         selectedPeriod = nil
                         selectedDate = .now
                     }
@@ -87,12 +87,12 @@ struct CounterView: View {
             }
         }
         .sheet(isPresented: $showSetupSheet) {
-            NoContactSetupSheet(
+            HealingDaysSetupSheet(
                 selectedDate: $selectedDate,
                 selectedPeriod: $selectedPeriod,
                 onSave: {
-                    let goal = selectedPeriod ?? NoContactTracker.defaultGoal
-                    NoContactTracker.activate(startDate: selectedDate, goal: goal)
+                    let goal = selectedPeriod ?? HealingDaysTracker.defaultGoal
+                    HealingDaysTracker.activate(startDate: selectedDate, goal: goal)
                     showSetupSheet = false
                 }
             )
@@ -100,9 +100,9 @@ struct CounterView: View {
             .presentationDragIndicator(.visible)
         }
         .onAppear {
-            if isTrackerActive, let savedDate = NoContactTracker.startDate(from: startDateInterval) {
+            if isTrackerActive, let savedDate = HealingDaysTracker.startDate(from: startDateInterval) {
                 selectedDate = savedDate
-                selectedPeriod = storedGoal.isEmpty ? NoContactTracker.defaultGoal : storedGoal
+                selectedPeriod = storedGoal.isEmpty ? HealingDaysTracker.defaultGoal : storedGoal
             }
         }
     }

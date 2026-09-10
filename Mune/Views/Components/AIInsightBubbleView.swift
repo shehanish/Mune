@@ -1,6 +1,6 @@
 //
 //  AIInsightBubbleView.swift
-//  Mend
+//  Mune
 //
 //  Created by Shehani Hansika on 13.05.26.
 //

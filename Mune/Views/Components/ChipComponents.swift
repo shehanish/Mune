@@ -1,6 +1,6 @@
 //
 //  ChipComponents.swift
-//  Mend
+//  Mune
 //
 
 import SwiftUI

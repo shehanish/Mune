@@ -1,0 +1,43 @@
+Review notes for App Store Connect (Notes field) and a reply on the old Mend submission.
+
+APP INFORMATION
+- Name: Mune: Heal What's Heavy
+- Bundle ID: com.shehani.mune
+- SKU: mune-heal-whats-heavy
+- Primary language: English (US)
+- Category: Lifestyle
+- Age rating: 12+ recommended (frequent/infrequent mature/suggestive themes around breakup distress; crisis resources present). Do not copy the competing Mend 4+ listing.
+- Privacy Policy: https://shehanish.github.io/Mune/privacy-policy.html
+
+CREATE THE APP
+1. App Store Connect → Apps → New App
+2. Platforms: iOS
+3. Name: Mune: Heal What's Heavy
+4. Primary language: English (US)
+5. Bundle ID: com.shehani.mune  (create this identifier in Certificates, Identifiers & Profiles first if it is missing)
+6. SKU: mune-heal-whats-heavy
+7. User Access: Full Access
+Do not reuse the rejected “Mend: Heal Your Heart” record. Do not use the name Mend.
+
+REPLY ON THE OLD MEND SUBMISSION
+Thank you for the 4.3(a) feedback. The previous submission used a working title, Mend: Heal Your Heart, which created confusion with an unrelated App Store app of a similar name. That was our mistake.
+
+We are not affiliated with Novra Development LLC or Mend - No Contact Tracker. Mune is an original, local-first breakup companion we built ourselves.
+
+The new submission is a distinct iPhone app:
+- Name and bundle ID: Mune / com.shehani.mune
+- Ride this wave: a timed urge-pause that is never saved or sent
+- Calm Space: breathing, grounding, drawing, vent pad, call-a-friend, crisis links
+- Voice journal, local multi-profile spaces, no account and no subscriptions
+
+Healing days is an optional quiet reminder, not the product. Please review Mune on that basis.
+
+SCREENSHOT ORDER (iPhone 6.9", 1320 x 2868)
+Upload from AppStore/screenshots/ in this order:
+1. 01-ride-this-wave.png
+2. 02-calm-space.png
+3. 03-home.png
+4. 04-chat.png
+5. 05-journal.png
+Optional: 06-welcome.png
+Do not lead with a day-counter screenshot.
