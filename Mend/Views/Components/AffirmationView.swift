@@ -5,7 +5,7 @@ struct AffirmationView: View {
 
     private let affirmations = [
         "Missing them is human. Going back isn’t the only way to honor that ache.",
-        "Choosing no contact can be a quiet act of care for yourself.",
+        "Choosing gentle distance can be a quiet act of care for yourself.",
         "You don’t have to forget them. You’re allowed to find yourself again, gently."
     ]
 

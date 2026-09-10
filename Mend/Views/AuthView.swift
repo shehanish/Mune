@@ -16,7 +16,7 @@ struct AuthView: View {
     // MARK: - Transient state
     @State private var name          = ""
     @State private var step          = 0           // 0 = welcome, 1 = name, 2 = focus, 3 = complete
-    @State private var selectedFocuses: Set<String> = ["No contact"]
+    @State private var selectedFocuses: Set<String> = ["Healing days"]
     @State private var trackNoContact = true
     @State private var noContactStartDate = Date()
     @State private var didCustomizeNoContactStartDate = false
@@ -25,7 +25,7 @@ struct AuthView: View {
 
     // MARK: - Data
     private let focusOptions: [(title: String, subtitle: String, icon: String)] = [
-        ("No contact",         "Be with me when I want to reach out",      "hand.raised.fill"),
+        ("Healing days",       "Be with me when I want to reach out",      "leaf.fill"),
         ("Process the grief",  "A safe place to feel it, write it, say it", "heart.text.square.fill"),
         ("Hard moments",       "Gentle help when I want to text them",     "heart.circle.fill"),
         ("Rebuild my routine", "Small, kind steps back to myself",         "sun.and.horizon.fill"),
@@ -91,7 +91,12 @@ struct AuthView: View {
         .onAppear {
             name = (userName.isEmpty || userName == "Friend") ? "" : userName
             let saved = healingFocus.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
-            selectedFocuses = saved.isEmpty ? ["No contact"] : Set(saved)
+            var focuses = saved.isEmpty ? ["Healing days"] : Set(saved)
+            if focuses.contains("No contact") {
+                focuses.remove("No contact")
+                focuses.insert("Healing days")
+            }
+            selectedFocuses = focuses
             refreshNoContactStartDateIfNeeded()
         }
         .onChange(of: step) { _, newStep in
@@ -247,7 +252,7 @@ struct AuthView: View {
                 }
                 .padding(.horizontal, 24)
 
-                if selectedFocuses.contains("No contact") {
+                if selectedFocuses.contains("Healing days") || selectedFocuses.contains("No contact") {
                     noContactSetupSection
                         .padding(.horizontal, 24)
                         .padding(.top, 20)
@@ -414,11 +419,11 @@ struct AuthView: View {
                     .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("Gently track my no-contact days")
+                    Text("Gently track my healing days")
                         .font(.headline)
                         .foregroundStyle(Color.textOnPrimary)
 
-                    Text("A quiet count of days since you last had contact , only if it feels helpful.")
+                    Text("A quiet count of days since you last had contact, only if it feels helpful.")
                         .font(.caption)
                         .foregroundStyle(Color.textOnPrimary.opacity(0.65))
                         .fixedSize(horizontal: false, vertical: true)
@@ -429,7 +434,7 @@ struct AuthView: View {
                 Toggle("", isOn: $trackNoContact)
                     .labelsHidden()
                     .tint(Color.brandPrimary)
-                    .accessibilityLabel("Gently track my no-contact days")
+                    .accessibilityLabel("Gently track my healing days")
             }
 
             if trackNoContact {
@@ -543,7 +548,7 @@ struct AuthView: View {
         )
         LocalProfileStore.activate(profile, signIn: false)
 
-        if selectedFocuses.contains("No contact"), trackNoContact {
+        if (selectedFocuses.contains("Healing days") || selectedFocuses.contains("No contact")), trackNoContact {
             let startDate = didCustomizeNoContactStartDate ? noContactStartDate : Date()
             NoContactTracker.activate(
                 startDate: startDate,

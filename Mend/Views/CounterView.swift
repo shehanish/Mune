@@ -48,7 +48,7 @@ struct CounterView: View {
                                 .fontWeight(.bold)
                                 .foregroundStyle(Color.textOnPrimary)
 
-                            Text("No contact can give you quiet room to heal and come back to yourself.")
+                            Text("Healing days give you quiet room to come back to yourself — one gentle day at a time.")
                                 .font(.body)
                                 .multilineTextAlignment(.center)
                                 .foregroundStyle(Color.textOnPrimary.opacity(0.8))
@@ -59,7 +59,7 @@ struct CounterView: View {
                                 selectedPeriod = nil
                                 showSetupSheet = true
                             }) {
-                                Text("Begin no contact gently")
+                                Text("Begin healing days gently")
                                     .font(.headline)
                                     .fontWeight(.bold)
                                     .foregroundStyle(.white)

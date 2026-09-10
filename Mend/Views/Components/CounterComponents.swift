@@ -112,7 +112,7 @@ struct NoContactHomeCard: View {
                     .clipShape(Circle())
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("No Contact")
+                    Text("Healing Days")
                         .font(.headline)
                         .foregroundStyle(Color.brandPrimary)
 
@@ -141,8 +141,8 @@ struct NoContactHomeCard: View {
             .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 4)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(isActive ? "No contact, \(daysElapsed) days" : "Start no contact tracker")
-        .accessibilityHint("Opens no contact tracker")
+        .accessibilityLabel(isActive ? "Healing days, \(daysElapsed) days" : "Start healing days tracker")
+        .accessibilityHint("Opens healing days tracker")
     }
 }
 
@@ -168,7 +168,7 @@ struct NoContactSetupSheet: View {
                 
                 ScrollView {
                     VStack(spacing: 25) {
-                        Text("Set up no contact")
+                        Text("Set up healing days")
                             .font(.title2)
                             .fontWeight(.bold)
                             .foregroundStyle(Color.textOnPrimary)
@@ -279,7 +279,7 @@ struct ActiveTrackerView: View {
     
     var body: some View {
         VStack(spacing: 40) {
-            Text("Your no-contact journey")
+            Text("Your healing days")
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(Color.textOnPrimary)

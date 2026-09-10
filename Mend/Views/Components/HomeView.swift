@@ -90,7 +90,7 @@ struct HomeView: View {
             }
             return "\(noContactDays) gentle days. Tap when you’d like to look"
         }
-        return "Your streak can wait until you’re ready"
+        return "Your healing days can wait until you’re ready"
     }
 
     private var healingFocusTip: HealingFocusTip {
@@ -430,7 +430,7 @@ struct HomeView: View {
                         .background(Color.brandPrimary.opacity(0.12), in: Circle())
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("No contact")
+                        Text("Healing days")
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(Color.brandPrimary)
 
@@ -455,7 +455,7 @@ struct HomeView: View {
                 .background(Color.cardSurface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(noContactIsActive ? "No contact, \(noContactDays) days" : "Start no contact tracker")
+            .accessibilityLabel(noContactIsActive ? "Healing days, \(noContactDays) days" : "Start healing days tracker")
 
             VStack(alignment: .leading, spacing: 10) {
                 HStack {

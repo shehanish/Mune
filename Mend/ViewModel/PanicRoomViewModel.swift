@@ -80,7 +80,7 @@ class PanicRoomViewModel {
         "The urge to text them will soften. Stay with me through this wave.",
         "Missing them is human. That doesn’t mean you have to go back.",
         "You’re allowed to grieve and still take one soft step forward.",
-        "No contact can be a quiet way of caring for yourself.",
+        "Gentle distance can be a quiet way of caring for yourself.",
         "Healing isn’t linear. Showing up today still counts."
     ]
 

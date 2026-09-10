@@ -156,7 +156,7 @@ struct WelcomeView: View {
         VStack(spacing: 12) {
             WelcomeFeatureRow(
                 icon: "leaf.fill",
-                title: "Gentle no-contact support",
+                title: "Gentle healing-day support",
                 subtitle: "I’ll sit with you when the urge to reach out feels loud"
             )
             WelcomeFeatureRow(

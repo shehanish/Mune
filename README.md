@@ -1,10 +1,10 @@
 <div align="center">
 
-# Mend
+# Mune
 
-### Your breakup healing companion
+### Heal what’s heavy
 
-*Get through the breakup day by day — especially when the hurt feels unbearable.*
+*A private companion for breakup healing — especially when the hurt feels unbearable.*
 
 [![Swift](https://img.shields.io/badge/Swift-5.9-orange.svg)](https://swift.org)
 [![iOS](https://img.shields.io/badge/iOS-17.0+-blue.svg)](https://developer.apple.com/ios/)
@@ -45,19 +45,19 @@
 
 ---
 
-## What is Mend?
+## What is Mune?
 
-Mend is a private, local-first iOS app for people going through a breakup. It helps you process hurtful feelings, stay strong during no contact, survive hard moments when you want to text your ex, and slowly come back to yourself — with daily check-ins, breakup-aware AI chat, journaling, and a calm space when you're overwhelmed. Everything stays privately on your device.
+Mune is a private, local-first iOS app for people going through a breakup. It helps you process heavy feelings, find calm in hard moments, and slowly come back to yourself — with daily check-ins, breakup-aware AI chat, journaling, healing days, and a Calm Space when you're overwhelmed. Everything stays privately on your device.
 
 ---
 
 ## Features
 
 **Daily check-ins**
-Log how you feel each day after the breakup. Mend tracks your healing week and shows gentle patterns over time.
+Log how you feel each day after the breakup. Mune tracks your healing week and shows gentle patterns over time.
 
-**Breakup support — Talk to Mend**
-Have a real conversation with AI that understands breakup recovery — no contact, grief, and hard urges. Powered by OpenAI via a secure backend proxy. Chat stays in memory only and is never stored by Mend.
+**Breakup support — Talk to Mune**
+Have a real conversation with AI that understands breakup recovery — grief, hard urges, and rebuilding. Powered by OpenAI via a secure backend proxy. Chat stays in memory only and is never stored by Mune.
 
 **Journal**
 Process the breakup in writing or by voice. Log gratitudes and reflect on what you're learning. Your journal stays entirely on your device using SwiftData.
@@ -65,8 +65,11 @@ Process the breakup in writing or by voice. Log gratitudes and reflect on what y
 **Calm Space**
 For the moments you want to text them, checked their socials, or feel like day one again. Includes guided breathing, 5-4-3-2-1 grounding, a private vent pad (say it without sending it), a drawing canvas, a call-a-friend contact picker, and worldwide crisis links (IASP Find a Helpline + local emergency).
 
+**Healing days**
+Optionally track gentle days of space from your ex as a quiet reminder you’re caring for yourself — not as a streak-pressure tool.
+
 **Personal setup**
-Choose your name and breakup goals during onboarding — no contact, processing grief, hard-moment support, rebuilding your routine. Everything adapts to feel like *your* Mend.
+Choose your name and healing goals during onboarding — healing days, processing grief, hard-moment support, rebuilding your routine. Everything adapts to feel like *your* Mune.
 
 ---
 
@@ -138,7 +141,7 @@ Mend/
 
 ## Crisis Resources
 
-Calm Space and Chat point people to **[IASP Find a Helpline](https://www.iasp.info/suicidalthoughts/)** (worldwide) and local emergency services (**112** in the EU, **911** in the US). US devices may also see **988**. Mend is not a crisis service.
+Calm Space and Chat point people to **[IASP Find a Helpline](https://www.iasp.info/suicidalthoughts/)** (worldwide) and local emergency services (**112** in the EU, **911** in the US). US devices may also see **988**. Mune is not a crisis service.
 
 Calm Space ambient audio is from Pixabay; see `THIRD_PARTY_AUDIO.md`.
 

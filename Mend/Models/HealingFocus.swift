@@ -8,7 +8,7 @@
 import Foundation
 
 enum HealingFocus: String, CaseIterable {
-    case noContact = "No contact"
+    case noContact = "Healing days"
     case processGrief = "Process the grief"
     case hardMoments = "Hard moments"
     case rebuildRoutine = "Rebuild my routine"
@@ -19,7 +19,12 @@ enum HealingFocus: String, CaseIterable {
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
 
-        return Set(parts.compactMap { HealingFocus(rawValue: $0) })
+        return Set(parts.compactMap { part in
+            if part == "No contact" || part == "Healing days" {
+                return .noContact
+            }
+            return HealingFocus(rawValue: part)
+        })
     }
 }
 
@@ -69,17 +74,17 @@ enum HealingFocusTipBuilder {
             if noContactIsActive {
                 let dayText = noContactDays == 1 ? "1 gentle day" : "\(noContactDays) gentle days"
                 return HealingFocusTip(
-                    title: "No contact",
-                    message: "You’re on \(dayText). Peek at your streak anytime you need a quiet reminder you’re caring for yourself.",
-                    actionLabel: "See my streak",
+                    title: "Healing days",
+                    message: "You’re on \(dayText). Peek anytime you need a quiet reminder you’re caring for yourself.",
+                    actionLabel: "See healing days",
                     icon: "leaf.fill",
                     destination: .noContact
                 )
             }
             return HealingFocusTip(
-                title: "No contact",
-                message: "When you’re ready, we can track your days so hard moments feel a little less alone.",
-                actionLabel: "See my streak",
+                title: "Healing days",
+                message: "When you’re ready, we can track your gentle days so hard moments feel a little less alone.",
+                actionLabel: "See healing days",
                 icon: "leaf.fill",
                 destination: .noContact
             )
