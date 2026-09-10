@@ -120,10 +120,14 @@ struct HomeView: View {
                                 .font(.title)
                                 .fontWeight(.bold)
                                 .foregroundStyle(Color.brandPrimary)
+                                .multilineTextAlignment(.center)
 
-                            Text("I’m with you today. We’ll take this one soft step at a time.")
+                            Text("I’m with you today. One soft step at a time.")
                                 .font(.subheadline)
                                 .foregroundStyle(Color.brandPrimary)
+                                .multilineTextAlignment(.center)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .padding(.horizontal, 8)
 
                             AffirmationView()
                                 .padding(.top, 4)

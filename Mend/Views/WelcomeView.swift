@@ -43,7 +43,7 @@ struct WelcomeView: View {
                         .animation(.spring(response: 0.8, dampingFraction: 0.7).delay(0.1), value: appeared)
 
                     VStack(spacing: 10) {
-                        Text("Mend")
+                        Text("Mune")
                             .font(.system(size: 54, weight: .heavy, design: .rounded))
                             .foregroundStyle(
                                 LinearGradient(
@@ -55,7 +55,7 @@ struct WelcomeView: View {
                             .kerning(2)
                             .shadow(color: Color.brandPrimary.opacity(0.18), radius: 8, y: 4)
 
-                        Text("A kind companion for this hard chapter")
+                        Text("Heal what’s heavy")
                             .font(.system(size: 16, weight: .medium, design: .rounded))
                             .foregroundStyle(Color.textOnPrimary.opacity(0.72))
                             .multilineTextAlignment(.center)
@@ -103,7 +103,7 @@ struct WelcomeView: View {
                         .font(.caption)
                         .foregroundStyle(Color.textOnPrimary.opacity(0.48))
 
-                    Text("Mend offers support, not therapy. If you’re in crisis, find a local helpline or call emergency services.")
+                    Text("Mune offers support, not therapy. If you’re in crisis, find a local helpline or call emergency services.")
                         .font(.caption2)
                         .multilineTextAlignment(.center)
                         .foregroundStyle(Color.textOnPrimary.opacity(0.40))

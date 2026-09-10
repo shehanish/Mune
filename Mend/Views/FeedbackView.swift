@@ -243,7 +243,7 @@ struct FeedbackView: View {
         }()
 
         return """
-        Mend app feedback
+        Mune app feedback
 
         From: \(displayName)
 
@@ -258,7 +258,7 @@ struct FeedbackView: View {
 
         FeedbackSender.send(
             recipient: AppConfig.feedbackEmail,
-            subject: "Mend feedback",
+            subject: "Mune feedback",
             body: emailBody,
             images: attachedImages,
             onMailFinished: { result in

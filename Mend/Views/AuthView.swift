@@ -129,7 +129,7 @@ struct AuthView: View {
                 .accessibilityHidden(true)
 
             VStack(spacing: 8) {
-                Text("Welcome to Mend")
+                Text("Welcome to Mune")
                     .font(.system(size: 30, weight: .bold, design: .rounded))
                     .foregroundStyle(Color.textOnPrimary)
 
@@ -143,10 +143,10 @@ struct AuthView: View {
             VStack(spacing: 10) {
                 featurePill(icon: "lock.fill",          label: "Private. Your story stays on your device")
                 featurePill(icon: "brain.head.profile", label: "Gentle, breakup-aware support when you need it")
-                featurePill(icon: "hand.raised.fill",   label: "Made for no contact and tender moments")
+                featurePill(icon: "leaf.fill",          label: "Calm tools for hard, tender moments")
             }
 
-            Text("Mend offers kind support, not therapy or medical care. If you’re in crisis, find a local helpline or call emergency services.")
+            Text("Mune offers kind support, not therapy or medical care. If you’re in crisis, find a local helpline or call emergency services.")
                 .font(.caption)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(Color.textOnPrimary.opacity(0.62))
@@ -259,7 +259,7 @@ struct AuthView: View {
 
                 HStack(spacing: 12) {
                     secondaryButton("Back") { back() }
-                    primaryButton("Come into Mend") { completeOnboarding() }
+                    primaryButton("Come into Mune") { completeOnboarding() }
                 }
                 .padding(.horizontal, 28)
                 .padding(.bottom, 48)
@@ -277,20 +277,20 @@ struct AuthView: View {
                 .accessibilityHidden(true)
 
             VStack(spacing: 10) {
-                Text("You’re safely here\(nameDisplay).")
+                Text("Welcome in\(nameDisplay).")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundStyle(Color.textOnPrimary)
                     .multilineTextAlignment(.center)
                     .accessibilityAddTraits(.isHeader)
 
-                Text("I’m right beside you.\nTake a breath. We’ll go gently, one day at a time.")
+                Text("Your space is ready.\nTake a breath. We’ll go gently, one day at a time.")
                     .font(.body)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(Color.textOnPrimary.opacity(0.78))
                     .lineSpacing(5)
             }
 
-            primaryButton("Open my quiet space") {
+            primaryButton("Open Mune") {
                 if let profile = LocalProfileStore.activeProfile() {
                     LocalProfileStore.activate(profile, signIn: true)
                 } else {

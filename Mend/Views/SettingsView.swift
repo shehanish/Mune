@@ -67,7 +67,7 @@ struct SettingsView: View {
                                 }
 
                                 if notificationStatus == .denied {
-                                    Label("Notifications are blocked. You can enable them in Settings → Mend when you’re ready.", systemImage: "bell.slash")
+                                    Label("Notifications are blocked. You can enable them in Settings → Mune when you’re ready.", systemImage: "bell.slash")
                                         .font(.caption)
                                         .foregroundStyle(.orange)
                                 }
@@ -138,7 +138,7 @@ struct SettingsView: View {
                                     .foregroundStyle(Color.brandPrimary)
                             }
                             Divider()
-                            Text("Mend offers kind breakup support. It is not therapy, medical care, or a crisis service. If you’re in crisis, find a local helpline or call your local emergency number.")
+                            Text("Mune offers kind breakup support. It is not therapy, medical care, or a crisis service. If you’re in crisis, find a local helpline or call your local emergency number.")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -165,7 +165,7 @@ struct SettingsView: View {
                 }
                 Button("Cancel", role: .cancel) {}
             } message: {
-                Text("To receive gentle reminders, please allow notifications for Mend in your iPhone Settings.")
+                Text("To receive gentle reminders, please allow notifications for Mune in your iPhone Settings.")
             }
             .onAppear { loadState() }
         }

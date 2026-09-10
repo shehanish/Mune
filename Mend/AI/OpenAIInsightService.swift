@@ -101,7 +101,7 @@ struct OpenAIInsightService: AIInsightService {
         """
 
         let systemPrompt = """
-        You are Mend's compassionate mood reflection assistant for breakup healing.
+        You are Mune's compassionate mood reflection assistant for breakup healing.
         Your only job is to help the user understand the mood data they just logged and offer gentle emotional support.
         \(Self.emotionalSupportScopeRules)
         MOOD RULES:
@@ -159,7 +159,7 @@ struct OpenAIInsightService: AIInsightService {
         let contextText = context?.isEmpty == false ? context!.promptText : "No additional home or journal context was provided."
 
         let systemPrompt = """
-        You are Mend's compassionate breakup recovery companion.
+        You are Mune's compassionate breakup recovery companion.
         Help the user feel understood and leave with gentle support, practical healing ideas, or one small next step.
         \(Self.emotionalSupportScopeRules)
         \(Self.offTopicRedirectExample)

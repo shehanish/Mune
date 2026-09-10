@@ -1,8 +1,8 @@
-# Privacy Policy for Mend
+# Privacy Policy for Mune
 
-**Last updated: August 25, 2026**
+**Last updated: September 10, 2026**
 
-Mend ("we", "our", or "the app") is a personal wellness app designed to help you track your mood, journal your thoughts, and receive gentle AI-powered reflections. Your privacy is fundamental to how this app was built.
+Mune ("we", "our", or "the app") is a personal wellness app designed to help you track your mood, journal your thoughts, and receive gentle AI-powered reflections. Your privacy is fundamental to how this app was built.
 
 ---
 
@@ -16,10 +16,10 @@ The following is stored locally using Apple's SwiftData framework and stays on y
 - **Mood check-ins** (mood selections and any notes you write)
 - **Journal entries** (written entries and voice transcriptions)
 - **App preferences** (healing focus, reminder time, display settings)
-- **No-contact streak settings** and calm-space drawings you choose to save
+- **Healing-days streak settings** and calm-space drawings you choose to save
 
 ### Data sent when you use AI features
-When you use mood reflections or Talk to Mend chat, relevant content is sent over HTTPS to generate a response:
+When you use mood reflections or Talk to Mune chat, relevant content is sent over HTTPS to generate a response:
 
 - Your nickname
 - Mood labels and counts from recent check-ins
@@ -35,7 +35,7 @@ OpenAI's practices are governed by [OpenAI's Privacy Policy](https://openai.com/
 - Precise location
 - Device advertising identifiers for tracking
 - Analytics SDKs or third-party ad tracking
-- Cloud accounts or passwords (Mend is local-first; there is no Mend login server)
+- Cloud accounts or passwords (Mune is local-first; there is no Mune login server)
 
 ---
 
@@ -56,7 +56,7 @@ OpenAI's practices are governed by [OpenAI's Privacy Policy](https://openai.com/
 ## 3. Third-Party Services
 
 **Cloudflare Workers**
-Used as a secure proxy for AI requests. We do not operate a general Mend user database.
+Used as a secure proxy for AI requests. We do not operate a general Mune user database.
 
 **OpenAI, LLC**
 Powers AI reflection and chat. Relevant data (described above) is sent to OpenAI when you use those features. You can avoid this by not using Chat or AI reflections.
@@ -64,9 +64,9 @@ Powers AI reflection and chat. Relevant data (described above) is sent to OpenAI
 **Apple frameworks**
 - SwiftData (local database)
 - UserNotifications (local notifications only)
-- Contacts picker (system picker to call a support contact; Mend does not store your contacts)
+- Contacts picker (system picker to call a support contact; Mune does not store your contacts)
 - PhotosUI (profile / feedback photos stay on device unless you share feedback)
-- Speech framework (voice journal transcription; Mend requests on-device recognition when available)
+- Speech framework (voice journal transcription; Mune requests on-device recognition when available)
 
 ---
 
@@ -85,7 +85,7 @@ You can revoke permissions in **Settings → Privacy & Security** on your iPhone
 
 ## 5. Important health notice
 
-Mend is a breakup support and wellness tool. It is **not** therapy, **not** medical care, and **not** a crisis service. If you are in crisis, contact:
+Mune is a breakup support and wellness tool. It is **not** therapy, **not** medical care, and **not** a crisis service. If you are in crisis, contact:
 
 - **Find a local helpline**: [IASP Find a Helpline](https://www.iasp.info/suicidalthoughts/) (worldwide)
 - **Emergency services**: call **112** in the EU (including Germany), or your local emergency number (for example **911** in the US)
@@ -95,7 +95,7 @@ Mend is a breakup support and wellness tool. It is **not** therapy, **not** medi
 
 ## 6. Children's Privacy
 
-Mend is not directed at children under 13. We do not knowingly collect personal information from children under 13. If you believe a child has used the app, contact us and we will help you remove local data guidance.
+Mune is not directed at children under 13. We do not knowingly collect personal information from children under 13. If you believe a child has used the app, contact us and we will help you remove local data guidance.
 
 ---
 
@@ -118,9 +118,9 @@ We may update this Privacy Policy as the app evolves. When we do, we will update
 ## 9. Contact
 
 **Email:** shehani1207@gmail.com  
-**App:** Mend on the Apple App Store  
+**App:** Mune: Heal What’s Heavy on the Apple App Store  
 **Privacy page:** https://shehanish.github.io/Mend/privacy-policy.html
 
 ---
 
-*Mend is built with care. Your thoughts are yours.*
+*Mune is built with care. Your thoughts are yours.*

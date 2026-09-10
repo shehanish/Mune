@@ -35,7 +35,7 @@ final class ChatViewModel {
             ChatMessage(
                 text: "I'm right here with you, \(resolvedName). What's sitting on your heart?",
                 isUser: false,
-                senderName: "Mend"
+                senderName: "Mune"
             )
         ]
     }
@@ -59,7 +59,7 @@ final class ChatViewModel {
         guard !hasConsumedSeedMessage, let pendingSeedMessage else { return }
         hasConsumedSeedMessage = true
         self.pendingSeedMessage = nil
-        messages.append(ChatMessage(text: pendingSeedMessage, isUser: false, senderName: "Mend"))
+        messages.append(ChatMessage(text: pendingSeedMessage, isUser: false, senderName: "Mune"))
     }
 
     private func sendMessage(text: String) async {
@@ -74,7 +74,7 @@ final class ChatViewModel {
                 ChatMessage(
                     text: crisisSupportMessage(for: crisisSignals),
                     isUser: false,
-                    senderName: "Mend",
+                    senderName: "Mune",
                     kind: .crisisSupport(crisisSignals)
                 )
             )
@@ -95,10 +95,10 @@ final class ChatViewModel {
                 userName: displayName,
                 context: context
             )
-            messages.append(ChatMessage(text: response, isUser: false, senderName: "Mend"))
+            messages.append(ChatMessage(text: response, isUser: false, senderName: "Mune"))
             isThinking = false
         } catch {
-            messages.append(ChatMessage(text: "I hit a small snag. When you're ready, we can try again.", isUser: false, senderName: "Mend"))
+            messages.append(ChatMessage(text: "I hit a small snag. When you're ready, we can try again.", isUser: false, senderName: "Mune"))
             isThinking = false
         }
     }
