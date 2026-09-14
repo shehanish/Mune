@@ -28,23 +28,41 @@ Cancel that submission and delete the record before creating this one, so the
 account does not hold two records for the same app.
 
 APP REVIEW NOTES
-On our account history: an earlier submission under the working title Mend: Heal Your Heart was rejected under 4.3(a). We did not contest that decision. The title created confusion with an unrelated App Store app of a similar name, which was our mistake. We withdrew that record and renamed the app to Mune, with a new bundle identifier and a rewritten listing.
+Paste everything from "WHAT MUNE IS" to the end of this section into the
+App Review Notes field.
 
-We are not affiliated with Novra Development LLC or Mend - No Contact Tracker, and we do not use an app template or third-party source code. Mune is written by hand in SwiftUI and SwiftData.
+WHAT MUNE IS
+Mune is a private companion for the days after a breakup. It is built around a single moment: the urge to contact an ex. Rather than counting days of abstinence, Mune intervenes in that moment. It slows the decision down, gives the person something to do with the feeling, and hands them one small step for the day after. It is support, not therapy, and the app says so wherever it matters.
 
-Since that review we rebuilt the app around a guided intervention loop rather than a day counter. These features have no counterpart in the app we were compared to:
+NO SIGN-IN NEEDED
+There is no account, no email, and no password. Tap Get started, type any nickname, and every feature is immediately available. There are no in-app purchases, no subscription, and no paywall, so nothing is gated during review.
 
-- "I want to text them": a guided pause that walks you through the urge, lets you write the message you will not send, and hands you a next step instead of a streak
-- Two quiet minutes: a timed urge-surfing exercise with breathing pacing. Nothing is saved or sent
-- Reality Check: a structured thought-challenge tool. You name the thought, test it, and write a fairer answer
-- Rebuild: small daily commitments across body, mind, and people, tracking the days you showed up rather than punishing the days you missed
-- Recovery Progress: periodic self-ratings for pain, intrusive thoughts, contact urge, sleep, loneliness, and sense of self, shown as a trend
-- Calm Space: paced breathing, 5-4-3-2-1 grounding, a drawing pad, call-a-friend through the system contact picker, and worldwide crisis links
-- Crisis-signal detection that surfaces helplines on Home, in Journal, and in Chat, and deliberately does not forward that text to AI
+HOW TO SEE WHAT MAKES MUNE DIFFERENT (about two minutes)
+1. Calm Space tab, top button "I want to text them". A guided pause: name the urge, write the message you will not send, then receive a next step. Nothing is saved or transmitted.
+2. Calm Space tab, "2 quiet minutes", then "Start the 2 minutes". A timed urge-surfing exercise paced by breathing. No decisions, nothing saved.
+3. Journal tab, prompt row, "Reality Check". A structured thought challenge: name the thought, test it against evidence, write a fairer answer.
+4. Home tab, scroll to "Rebuild yourself". Small daily commitments across body, mind, and people. It counts the days the person showed up instead of punishing the days they missed.
+5. Home tab, "Recovery progress". Periodic self-ratings for pain, intrusive thoughts, contact urge, sleep, loneliness, and sense of self, shown as a trend.
+6. Chat tab, starter chip "I want to text them". Breakup-aware support that redirects toward an exercise rather than replaying the relationship.
 
-Mune also differs commercially and on privacy: no account, no subscription or in-app purchases, no ads, no analytics, and no tracking identifiers. Journal entries, check-ins, rebuild steps, reality checks, and recovery snapshots stay in on-device storage, and the user can export or delete all of it from within the app.
+Also in Calm Space: paced breathing, 5-4-3-2-1 grounding, a drawing pad, and call-a-friend through the system contact picker. Crisis links are available worldwide.
 
-Healing days is optional, off by default, framed as care rather than a streak, and is deliberately not the lead feature or the first screenshot. Please review Mune on that basis.
+Crisis-signal detection surfaces helplines on Home, in Journal, and in Chat, and deliberately does not forward that text to AI.
+
+PRIVACY AND DATA
+- No account, no analytics SDK, no ads, and no tracking identifiers.
+- Stays on the device: journal entries, check-ins, rebuild steps, reality checks, recovery snapshots, drawings, and the profile.
+- Leaves the device: chat messages, optional check-in context, and the nickname, sent through our own Cloudflare Worker to OpenAI to generate a reply. Declared as Name and Other User Content, linked to identity, App Functionality only, never used for tracking.
+- The person can export or delete everything from inside the app (Settings, then Your data).
+- The bundled Calm Space audio is licensed from Pixabay under the Pixabay Content License, which permits commercial use in apps.
+
+HEALING DAYS IS NOT THE POINT
+The optional healing-days counter is off by default, framed as care rather than a streak, and is deliberately neither the lead feature nor the first screenshot.
+
+ACCOUNT HISTORY
+An earlier submission under the working title Mend: Heal Your Heart was rejected under 4.3(a). We did not contest that decision. The title created confusion with an unrelated App Store app of a similar name, which was our mistake. We withdrew that record and renamed the app to Mune, with a new bundle identifier and a rewritten listing.
+
+We are not affiliated with Novra Development LLC or Mend - No Contact Tracker, and we do not use an app template or third-party source code. Mune is written by hand in SwiftUI and SwiftData. Every feature listed above has no counterpart in the app we were compared to.
 
 SCREENSHOT ORDER (iPhone 6.9", 1320 x 2868)
 Upload from AppStore/screenshots/ in this order:
