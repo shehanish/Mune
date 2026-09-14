@@ -13,33 +13,23 @@ struct AffirmationView: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            TabView(selection: $selectedAffirmationIndex) {
+            // Tap rather than swipe, so a sideways drag here still changes tabs.
+            Text("\"\(affirmations[selectedAffirmationIndex])\"")
+                .font(.system(size: 16, weight: .medium))
+                .multilineTextAlignment(.center)
+                .foregroundStyle(Color.brandPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 18)
+                .frame(maxWidth: .infinity, minHeight: quoteHeight, alignment: .center)
+                .id(selectedAffirmationIndex)
+                .transition(.opacity)
+                .accessibilityLabel(affirmations[selectedAffirmationIndex])
+
+            HStack(spacing: 5) {
                 ForEach(affirmations.indices, id: \.self) { index in
-                    Text("\"\(affirmations[index])\"")
-                        .font(.system(size: 16, weight: .medium))
-                        .multilineTextAlignment(.center)
-                        .foregroundStyle(Color.brandPrimary)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .padding(.horizontal, 18)
-                        .frame(maxWidth: .infinity, minHeight: quoteHeight, alignment: .center)
-                        .tag(index)
-                        .accessibilityLabel(affirmations[index])
-                }
-            }
-            .tabViewStyle(.page(indexDisplayMode: .never))
-            .frame(height: quoteHeight)
-
-            VStack(spacing: 8) {
-                Text("\(selectedAffirmationIndex + 1) of \(affirmations.count)")
-                    .font(.caption2)
-                    .foregroundStyle(Color.brandPrimary.opacity(0.38))
-
-                HStack(spacing: 5) {
-                    ForEach(affirmations.indices, id: \.self) { index in
-                        Capsule()
-                            .fill(index == selectedAffirmationIndex ? Color.brandPrimary.opacity(0.55) : Color.brandPrimary.opacity(0.16))
-                            .frame(width: index == selectedAffirmationIndex ? 16 : 6, height: 6)
-                    }
+                    Capsule()
+                        .fill(index == selectedAffirmationIndex ? Color.brandPrimary.opacity(0.55) : Color.brandPrimary.opacity(0.16))
+                        .frame(width: index == selectedAffirmationIndex ? 16 : 6, height: 6)
                 }
             }
         }
@@ -56,8 +46,15 @@ struct AffirmationView: View {
                 .stroke(Color.brandPrimary.opacity(0.12), lineWidth: 1)
         )
         .shadow(color: Color.brandPrimary.opacity(0.08), radius: 10, x: 0, y: 4)
-        .accessibilityElement(children: .contain)
-        .accessibilityHint("Swipe left or right for another reminder")
+        .contentShape(Rectangle())
+        .onTapGesture {
+            withAnimation(.easeInOut(duration: 0.22)) {
+                selectedAffirmationIndex = (selectedAffirmationIndex + 1) % affirmations.count
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityHint("Tap for another reminder")
     }
 }
 

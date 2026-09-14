@@ -7,13 +7,18 @@
 
 import SwiftUI
 import SwiftData
+import Combine
 
 struct RootTabView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.tabSwipeGate) private var swipeGate
     @AppStorage("userName") private var userName = "Friend"
     @AppStorage("activeProfileID") private var activeProfileID = ""
     @State private var selectedTab: Int = 0
     @State private var navigator = RecoveryNavigator()
+    @State private var isKeyboardVisible = false
+
+    private static let lastTabIndex = 3
 
     // Keep VMs in State so they are only created once and don't leak memory on re-renders
     @State private var homeVM: HomeViewModel?
@@ -55,6 +60,7 @@ struct RootTabView: View {
                 .tint(Color.brandPrimary)
                 .toolbarBackground(.ultraThinMaterial, for: .tabBar)
                 .environment(\.recoveryNavigator, navigator)
+                .simultaneousGesture(tabSwipeGesture)
             } else {
                 ProgressView() // Show loading until VMs initialize
             }
@@ -82,6 +88,12 @@ struct RootTabView: View {
             selectedTab = tab
             navigator.requestedTab = nil
         }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
+            isKeyboardVisible = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
+            isKeyboardVisible = false
+        }
         .onAppear {
             LocalProfileStore.migrateLegacyIfNeeded()
             setupViewModels(force: false)
@@ -99,6 +111,31 @@ struct RootTabView: View {
             chatVM = nil
             journalVM = nil
             setupViewModels(force: true)
+        }
+    }
+
+    /// Horizontal swipe between the four tabs. Runs alongside the tabs' own gestures,
+    /// so it only fires for drags that are clearly sideways and not text selection.
+    private var tabSwipeGesture: some Gesture {
+        DragGesture(minimumDistance: 24)
+            .onEnded { value in
+                guard !isKeyboardVisible, !swipeGate.isBlocked else { return }
+
+                let horizontal = value.translation.width
+                let vertical = value.translation.height
+                guard abs(horizontal) > 70,
+                      abs(vertical) < 60,
+                      abs(horizontal) > abs(vertical) * 2 else { return }
+
+                moveTab(by: horizontal < 0 ? 1 : -1)
+            }
+    }
+
+    private func moveTab(by offset: Int) {
+        let next = selectedTab + offset
+        guard next >= 0, next <= Self.lastTabIndex else { return }
+        withAnimation(.easeOut(duration: 0.2)) {
+            selectedTab = next
         }
     }
 

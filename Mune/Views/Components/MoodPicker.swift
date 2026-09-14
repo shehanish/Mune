@@ -25,6 +25,7 @@ struct MoodPicker: View {
             }
             .padding(.vertical, 2)
         }
+        .blocksTabSwipe()
     }
 
     private func toggle(_ mood: String) {
