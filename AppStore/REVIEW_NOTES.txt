@@ -1,7 +1,12 @@
-Review notes for App Store Connect (Notes field) and a reply on the old Mend submission.
+Review notes for App Store Connect. Paste the APP REVIEW NOTES section into the
+Notes field of the new submission. The old Mend rejection was never replied to
+and that record was deleted, so this is the only place the reviewer sees it.
 
 APP INFORMATION
 - Name: Mune: Heal What's Heavy
+  (Plain "Mune" is unavailable on App Store Connect. The University of New
+   England ships mUNE, id924368406, and the uniqueness check ignores case.
+   The home screen name stays "Mune" via CFBundleDisplayName.)
 - Bundle ID: com.shehani.mune
 - SKU: mune-heal-whats-heavy
 - Primary language: English (US)
@@ -19,9 +24,11 @@ CREATE THE APP
 6. SKU: mune-heal-whats-heavy
 7. User Access: Full Access
 Do not reuse the rejected “Mend: Heal Your Heart” record. Do not use the name Mend.
+Cancel that submission and delete the record before creating this one, so the
+account does not hold two records for the same app.
 
-REPLY ON THE OLD MEND SUBMISSION
-Thank you for the 4.3(a) feedback. The previous submission used a working title, Mend: Heal Your Heart, which created confusion with an unrelated App Store app of a similar name. That was our mistake, and we have renamed the app to Mune with a new bundle identifier.
+APP REVIEW NOTES
+On our account history: an earlier submission under the working title Mend: Heal Your Heart was rejected under 4.3(a). We did not contest that decision. The title created confusion with an unrelated App Store app of a similar name, which was our mistake. We withdrew that record and renamed the app to Mune, with a new bundle identifier and a rewritten listing.
 
 We are not affiliated with Novra Development LLC or Mend - No Contact Tracker, and we do not use an app template or third-party source code. Mune is written by hand in SwiftUI and SwiftData.
 

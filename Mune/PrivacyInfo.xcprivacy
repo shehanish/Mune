@@ -9,12 +9,13 @@
 	<key>NSPrivacyCollectedDataTypes</key>
 	<array>
 		<!-- Chat messages and check-in context sent to OpenAI through our proxy
-		     when the user opens Chat or asks for a check-in insight. -->
+		     when the user opens Chat or asks for a check-in insight. Linked
+		     because the request carries the nickname alongside the content. -->
 		<dict>
 			<key>NSPrivacyCollectedDataType</key>
 			<string>NSPrivacyCollectedDataTypeOtherUserContent</string>
 			<key>NSPrivacyCollectedDataTypeLinked</key>
-			<false/>
+			<true/>
 			<key>NSPrivacyCollectedDataTypeTracking</key>
 			<false/>
 			<key>NSPrivacyCollectedDataTypePurposes</key>
@@ -27,7 +28,7 @@
 			<key>NSPrivacyCollectedDataType</key>
 			<string>NSPrivacyCollectedDataTypeName</string>
 			<key>NSPrivacyCollectedDataTypeLinked</key>
-			<false/>
+			<true/>
 			<key>NSPrivacyCollectedDataTypeTracking</key>
 			<false/>
 			<key>NSPrivacyCollectedDataTypePurposes</key>
