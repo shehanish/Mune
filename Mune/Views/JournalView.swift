@@ -148,27 +148,30 @@ struct JournalView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-            ChipFlowLayout(spacing: 8) {
-                ForEach(prompts) { prompt in
-                    Button {
-                        applyJournalPrompt(prompt)
-                    } label: {
-                        MuneChipLabel(
-                            title: prompt.title,
-                            isSelected: isPromptSelected(prompt),
-                            showsCheckmark: false,
-                            selectedForeground: .brandPrimary,
-                            unselectedForeground: .brandPrimary,
-                            selectedFill: Color.sageGreen.opacity(0.38),
-                            unselectedFill: Color.white
-                        )
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(prompts) { prompt in
+                        Button {
+                            applyJournalPrompt(prompt)
+                        } label: {
+                            MuneChipLabel(
+                                title: prompt.title,
+                                isSelected: isPromptSelected(prompt),
+                                showsCheckmark: false,
+                                selectedForeground: .brandPrimary,
+                                unselectedForeground: .brandPrimary,
+                                selectedFill: Color.sageGreen.opacity(0.38),
+                                unselectedFill: Color.white
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(prompt.title)
+                        .accessibilityHint("Uses this journal prompt")
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(prompt.title)
-                    .accessibilityHint("Uses this journal prompt")
                 }
+                .padding(.vertical, 2)
             }
-            .padding(.vertical, 2)
+            .blocksTabSwipe()
 
             TextEditor(text: $vm.journalText)
                 .focused($focusedField, equals: .journal)

@@ -112,22 +112,25 @@ struct ChatView: View {
                 .padding(.bottom, 8)
             }
 
-            ChipFlowLayout(spacing: 8) {
-                ForEach(ChatViewModel.starterChips, id: \.self) { chip in
-                    Button {
-                        vm.applyStarterChip(chip)
-                    } label: {
-                        Text(chip)
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(Color.brandPrimary)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .background(Color.brandPrimary.opacity(0.10), in: Capsule())
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(ChatViewModel.starterChips, id: \.self) { chip in
+                        Button {
+                            vm.applyStarterChip(chip)
+                        } label: {
+                            Text(chip)
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(Color.brandPrimary)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .background(Color.brandPrimary.opacity(0.10), in: Capsule())
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
+                .padding(.horizontal)
             }
-            .padding(.horizontal)
+            .blocksTabSwipe()
             .padding(.top, 8)
 
             HStack(alignment: .bottom, spacing: 10) {
