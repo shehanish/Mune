@@ -13,7 +13,6 @@ struct ProfileView: View {
     @AppStorage("userName")      var userName      = ""
     @AppStorage("healingFocus")  var healingFocus  = ""
     @AppStorage("profileImageData") var profileImageData: Data = Data()
-    @AppStorage("activeProfileID") private var activeProfileID = ""
 
     @Environment(\.dismiss) var dismiss
 
@@ -21,7 +20,8 @@ struct ProfileView: View {
     @State private var selectedItem: PhotosPickerItem? = nil
     @State private var profileImage: Image? = nil
     @State private var showSignOutAlert = false
-    @State private var selectedFocuses: Set<String> = []
+    /// Most recently chosen focus first, which is the order the Home tip follows.
+    @State private var selectedFocuses: [String] = []
 
     private let focusOptions: [(title: String, subtitle: String, icon: String)] = [
         ("Healing days",       "Count days since last contact",            "leaf.fill"),
@@ -202,7 +202,7 @@ struct ProfileView: View {
             }
             .onAppear {
                 editName = userName
-                selectedFocuses = Self.parseFocusSet(healingFocus)
+                selectedFocuses = Self.parseFocusList(healingFocus)
                 if !profileImageData.isEmpty, let uiImage = UIImage(data: profileImageData) {
                     profileImage = Image(uiImage: uiImage)
                 }
@@ -214,9 +214,9 @@ struct ProfileView: View {
         let isOn = selectedFocuses.contains(option.title)
         return Button {
             if isOn {
-                selectedFocuses.remove(option.title)
+                selectedFocuses.removeAll { $0 == option.title }
             } else {
-                selectedFocuses.insert(option.title)
+                selectedFocuses.insert(option.title, at: 0)
             }
         } label: {
             HStack(spacing: 12) {
@@ -255,40 +255,44 @@ struct ProfileView: View {
         let trimmed = editName.trimmingCharacters(in: .whitespacesAndNewlines)
         userName = trimmed.isEmpty ? "Friend" : trimmed
 
-        let focusOrder = focusOptions.map(\.title)
-        let joined = focusOrder.filter { selectedFocuses.contains($0) }.joined(separator: ", ")
-        healingFocus = joined
+        healingFocus = selectedFocuses.joined(separator: ", ")
 
-        if !activeProfileID.isEmpty {
-            LocalProfileStore.updateDisplayName(userName, for: activeProfileID)
-            LocalProfileStore.updateHealingFocus(joined, for: activeProfileID)
-        }
+        // Mirrors the session values onto the profile record when there is one,
+        // so the focus survives leaving and re-entering this space.
+        LocalProfileStore.persistActiveSessionToScopedStorage()
 
         dismiss()
     }
 
-    private static func parseFocusSet(_ raw: String) -> Set<String> {
+    /// Keeps the stored order so the most recent choice stays first.
+    private static func parseFocusList(_ raw: String) -> [String] {
         let parts = raw
             .split(separator: ",")
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
 
-        var result = Set<String>()
+        var seen = Set<String>()
+        var ordered: [String] = []
+
         for part in parts {
+            let title: String
             switch part {
             case "No contact", "Healing days":
-                result.insert("Healing days")
+                title = "Healing days"
             case "Process the grief", "Write it out":
-                result.insert("Write it out")
+                title = "Write it out"
             case "Hard moments", "Find my calm":
-                result.insert("Find my calm")
-            case "Rebuild my routine":
-                result.insert("Rebuild my routine")
+                title = "Find my calm"
             default:
-                result.insert(part)
+                title = part
+            }
+
+            if seen.insert(title).inserted {
+                ordered.append(title)
             }
         }
-        return result
+
+        return ordered
     }
 }
 

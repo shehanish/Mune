@@ -14,23 +14,40 @@ enum HealingFocus: String, CaseIterable {
     case rebuildRoutine = "Rebuild my routine"
 
     static func parse(_ raw: String) -> Set<HealingFocus> {
+        Set(parseOrdered(raw))
+    }
+
+    /// Keeps the stored order, which puts the most recently chosen focus first.
+    static func parseOrdered(_ raw: String) -> [HealingFocus] {
         let parts = raw
             .split(separator: ",")
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
 
-        return Set(parts.compactMap { part in
-            switch part {
-            case "No contact", "Healing days":
-                return .healingDays
-            case "Process the grief", "Write it out":
-                return .processGrief
-            case "Hard moments", "Find my calm":
-                return .hardMoments
-            default:
-                return HealingFocus(rawValue: part)
+        var seen = Set<HealingFocus>()
+        var ordered: [HealingFocus] = []
+
+        for part in parts {
+            guard let focus = match(part) else { continue }
+            if seen.insert(focus).inserted {
+                ordered.append(focus)
             }
-        })
+        }
+
+        return ordered
+    }
+
+    private static func match(_ title: String) -> HealingFocus? {
+        switch title {
+        case "No contact", "Healing days":
+            return .healingDays
+        case "Process the grief", "Write it out":
+            return .processGrief
+        case "Hard moments", "Find my calm":
+            return .hardMoments
+        default:
+            return HealingFocus(rawValue: title)
+        }
     }
 }
 
@@ -51,21 +68,13 @@ struct HealingFocusTip: Equatable {
 }
 
 enum HealingFocusTipBuilder {
-    /// Prefer acute support first when someone picked several focuses.
-    private static let priority: [HealingFocus] = [
-        .hardMoments,
-        .healingDays,
-        .rebuildRoutine,
-        .processGrief
-    ]
-
     static func tip(
         healingFocusRaw: String,
         healingDaysIsActive: Bool,
         healingDaysCount: Int
     ) -> HealingFocusTip {
-        let focuses = HealingFocus.parse(healingFocusRaw)
-        let chosen = priority.first(where: { focuses.contains($0) }) ?? focuses.first
+        // Follow the most recent choice, so editing the focus visibly changes the tip.
+        let chosen = HealingFocus.parseOrdered(healingFocusRaw).first
 
         switch chosen {
         case .hardMoments:
