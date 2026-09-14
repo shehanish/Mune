@@ -13,6 +13,7 @@ struct RootTabView: View {
     @AppStorage("userName") private var userName = "Friend"
     @AppStorage("activeProfileID") private var activeProfileID = ""
     @State private var selectedTab: Int = 0
+    @State private var navigator = RecoveryNavigator()
 
     // Keep VMs in State so they are only created once and don't leak memory on re-renders
     @State private var homeVM: HomeViewModel?
@@ -53,9 +54,33 @@ struct RootTabView: View {
                 }
                 .tint(Color.brandPrimary)
                 .toolbarBackground(.ultraThinMaterial, for: .tabBar)
+                .environment(\.recoveryNavigator, navigator)
             } else {
                 ProgressView() // Show loading until VMs initialize
             }
+        }
+        .fullScreenCover(isPresented: $navigator.showContactUrge) {
+            ContactUrgeFlowView()
+        }
+        .fullScreenCover(isPresented: $navigator.showUrgeWave) {
+            UrgeWaveView()
+        }
+        .sheet(isPresented: $navigator.showRealityCheck) {
+            RealityCheckView(thought: navigator.realityCheckThought)
+        }
+        .sheet(isPresented: $navigator.showJournalExercise) {
+            JournalExerciseView(exerciseID: navigator.journalExerciseID ?? RecoveryExerciseID.miss)
+        }
+        .sheet(isPresented: $navigator.showRebuild) {
+            RebuildView()
+        }
+        .sheet(isPresented: $navigator.showProgress) {
+            RecoveryProgressView()
+        }
+        .onChange(of: navigator.requestedTab) { _, tab in
+            guard let tab else { return }
+            selectedTab = tab
+            navigator.requestedTab = nil
         }
         .onAppear {
             LocalProfileStore.migrateLegacyIfNeeded()
@@ -183,5 +208,5 @@ private struct PreviewAIInsightService: AIInsightService {
 
 #Preview {
     RootTabView()
-    .modelContainer(for: [MoodEntry.self, JournalEntry.self], inMemory: true)
+    .modelContainer(for: [MoodEntry.self, JournalEntry.self, RealityCheckEntry.self, RebuildGoal.self, RecoverySnapshot.self], inMemory: true)
 }

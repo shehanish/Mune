@@ -90,6 +90,9 @@ enum LocalProfileStore {
         profiles[index].healingFocus = focus
         save(profiles)
         UserDefaults.standard.set(focus, forKey: healingFocusKey(for: profileID))
+        if activeProfileID == profileID {
+            UserDefaults.standard.set(focus, forKey: "healingFocus")
+        }
     }
 
     /// Removes the profile and its local preferences. Call `purgeSwiftData(for:context:)` separately for entries.
@@ -122,24 +125,33 @@ enum LocalProfileStore {
         }
     }
 
-    /// Deletes mood and journal entries stored for this profile.
+    /// Deletes SwiftData entries stored for this profile.
     static func purgeSwiftData(for profileID: String, context: ModelContext) {
         do {
-            let moodDescriptor = FetchDescriptor<MoodEntry>(
-                predicate: #Predicate { $0.userID == profileID }
+            let moods = try context.fetch(
+                FetchDescriptor<MoodEntry>(predicate: #Predicate { $0.userID == profileID })
             )
-            let moods = try context.fetch(moodDescriptor)
-            for entry in moods {
-                context.delete(entry)
-            }
+            moods.forEach { context.delete($0) }
 
-            let journalDescriptor = FetchDescriptor<JournalEntry>(
-                predicate: #Predicate { $0.userID == profileID }
+            let journals = try context.fetch(
+                FetchDescriptor<JournalEntry>(predicate: #Predicate { $0.userID == profileID })
             )
-            let journals = try context.fetch(journalDescriptor)
-            for entry in journals {
-                context.delete(entry)
-            }
+            journals.forEach { context.delete($0) }
+
+            let realityChecks = try context.fetch(
+                FetchDescriptor<RealityCheckEntry>(predicate: #Predicate { $0.userID == profileID })
+            )
+            realityChecks.forEach { context.delete($0) }
+
+            let rebuildGoals = try context.fetch(
+                FetchDescriptor<RebuildGoal>(predicate: #Predicate { $0.userID == profileID })
+            )
+            rebuildGoals.forEach { context.delete($0) }
+
+            let snapshots = try context.fetch(
+                FetchDescriptor<RecoverySnapshot>(predicate: #Predicate { $0.userID == profileID })
+            )
+            snapshots.forEach { context.delete($0) }
 
             try context.save()
         } catch {

@@ -7,22 +7,26 @@
 
 import SwiftUI
 import UserNotifications
+import SwiftData
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
 
     @AppStorage("dailyRemindersEnabled") private var dailyRemindersEnabled = false
     @AppStorage("reminderHour")          private var reminderHour          = 20   // 8 PM default
     @AppStorage("reminderMinute")        private var reminderMinute        = 0
-    @AppStorage("healingHintsEnabled")   private var healingHintsEnabled   = true
     @AppStorage("reduceMotionEnabled")   private var reduceMotionEnabled   = false
+    @AppStorage("userName")              private var userName              = ""
     @AppStorage("activeProfileID")       private var activeProfileID       = ""
 
-    @State private var saveDrawingsEnabled = false
     @State private var notificationStatus: UNAuthorizationStatus = .notDetermined
     @State private var showPermissionDeniedAlert = false
     @State private var reminderTime = Date()
     @State private var showFeedbackSheet = false
+    @State private var exportURL: URL?
+    @State private var showExportSheet = false
+    @State private var exportErrorMessage: String?
 
     var body: some View {
         NavigationStack {
@@ -34,7 +38,7 @@ struct SettingsView: View {
                         header
 
                         // MARK: Notifications card
-                        settingsCard(title: "A gentle reminder") {
+                        settingsCard(title: "Daily reminder") {
                             VStack(alignment: .leading, spacing: 14) {
                                 Toggle("Remind me to check in with myself", isOn: Binding(
                                     get: { dailyRemindersEnabled },
@@ -61,7 +65,7 @@ struct SettingsView: View {
                                         scheduleReminder(hour: reminderHour, minute: reminderMinute)
                                     }
 
-                                    Text("A soft nudge to pause and check in with your heart.")
+                                    Text("A quick nudge to check in with yourself.")
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
@@ -76,33 +80,8 @@ struct SettingsView: View {
 
                         // MARK: Display card
                         settingsCard(title: "Display") {
-                            Toggle("Gentle hints", isOn: $healingHintsEnabled)
-                            Text("Show soft tips and prompts as we move through the app together.")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .padding(.top, -6)
-
                             Toggle("Reduce motion", isOn: $reduceMotionEnabled)
-                            Text("Turns off moving animations if they feel like too much.")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .padding(.top, -6)
-                        }
-
-                        settingsCard(title: "Calm Space") {
-                            Toggle("Save drawings", isOn: Binding(
-                                get: { saveDrawingsEnabled },
-                                set: { newValue in
-                                    saveDrawingsEnabled = newValue
-                                    let profileID = CalmSpaceViewModel.currentProfileID()
-                                    UserDefaults.standard.set(newValue, forKey: CalmSpaceViewModel.enabledKey(for: profileID))
-                                    UserDefaults.standard.set(newValue, forKey: CalmSpaceViewModel.saveDrawingsEnabledKey)
-                                    if !newValue {
-                                        CalmSpaceViewModel.clearDrawings(for: profileID)
-                                    }
-                                }
-                            ))
-                            Text("Keep named drawings in a private folder for this space. Turn off if you only want to draw for the moment.")
+                            Text("Turns off blob and breathing animations. Also follows your iPhone Reduce Motion setting.")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                                 .padding(.top, -6)
@@ -110,35 +89,68 @@ struct SettingsView: View {
 
                         // MARK: Feedback card
                         settingsCard(title: "Feedback") {
-                            Text("Tell me what would help you more. Screenshots are welcome.")
+                            Text("Tell me what’s helping, what’s confusing, or what you’d change. Screenshots help.")
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
 
                             Button {
                                 showFeedbackSheet = true
                             } label: {
-                                Label("Feedback", systemImage: "envelope.fill")
+                                Label("Send feedback", systemImage: "envelope.fill")
                                     .font(.subheadline.weight(.semibold))
                                     .foregroundStyle(Color.brandPrimary)
                             }
                         }
 
+                        // MARK: Your data
+                        settingsCard(title: "Your data") {
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text("What stays on this device")
+                                    .font(.subheadline.weight(.semibold))
+                                Text("Journal, check-ins, rebuild steps, reality checks, recovery snapshots, drawings, and your profile.")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+
+                                Text("What may leave this device")
+                                    .font(.subheadline.weight(.semibold))
+                                    .padding(.top, 4)
+                                Text("Chat messages and check-in insights may be sent to AI to generate replies. Feedback you send goes by email.")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+
+                                Button {
+                                    exportData()
+                                } label: {
+                                    Label("Export my data", systemImage: "square.and.arrow.up")
+                                        .font(.subheadline.weight(.semibold))
+                                        .foregroundStyle(Color.brandPrimary)
+                                }
+                                .padding(.top, 4)
+                            }
+                        }
+
                         // MARK: Account card
                         settingsCard(title: "This space") {
-                            Text("Use Profile to change your name or photo. Leave this space anytime from Profile. Your pages stay safely on this device.")
+                            Text("Change your name, photo, and healing focus in Profile. Leave anytime from Profile. Drawings save from the drawing page in Calm Space.")
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
                         }
 
                         // MARK: Legal card
                         settingsCard(title: "Legal") {
-                            Link(destination: URL(string: "https://shehanish.github.io/Mune/privacy-policy.html")!) {
+                            Link(destination: CrisisResources.privacyPolicyURL) {
                                 Label("Privacy Policy", systemImage: "hand.raised.fill")
                                     .font(.subheadline)
                                     .foregroundStyle(Color.brandPrimary)
                             }
                             Divider()
-                            Text("Mune offers kind breakup support. It is not therapy, medical care, or a crisis service. If you’re in crisis, find a local helpline or call your local emergency number.")
+                            Link(destination: CrisisResources.termsOfUseURL) {
+                                Label("Terms of Use", systemImage: "doc.text.fill")
+                                    .font(.subheadline)
+                                    .foregroundStyle(Color.brandPrimary)
+                            }
+                            Divider()
+                            Text("Mune offers support. It is not therapy, medical care, or a crisis service. If you’re in crisis, find a local helpline or call your local emergency number.")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -157,6 +169,21 @@ struct SettingsView: View {
             .sheet(isPresented: $showFeedbackSheet) {
                 FeedbackView()
             }
+            .sheet(isPresented: $showExportSheet, onDismiss: {
+                exportURL = nil
+            }) {
+                if let exportURL {
+                    ShareSheet(items: [exportURL])
+                }
+            }
+            .alert("Couldn’t export", isPresented: Binding(
+                get: { exportErrorMessage != nil },
+                set: { if !$0 { exportErrorMessage = nil } }
+            )) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(exportErrorMessage ?? "")
+            }
             .alert("Notifications need a quick yes", isPresented: $showPermissionDeniedAlert) {
                 Button("Open Settings") {
                     if let url = URL(string: UIApplication.openSettingsURLString) {
@@ -165,20 +192,30 @@ struct SettingsView: View {
                 }
                 Button("Cancel", role: .cancel) {}
             } message: {
-                Text("To receive gentle reminders, please allow notifications for Mune in your iPhone Settings.")
+                Text("To get reminders, allow notifications for Mune in iPhone Settings.")
             }
             .onAppear { loadState() }
+        }
+    }
+
+    private func exportData() {
+        let userID = activeProfileID.isEmpty ? LocalProfileStore.legacyUserID : activeProfileID
+        if let url = DataExportService.exportText(userID: userID, userName: userName, context: modelContext) {
+            exportURL = url
+            showExportSheet = true
+        } else {
+            exportErrorMessage = "I couldn’t create the export file just now."
         }
     }
 
     // MARK: - Header
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Make this space feel like yours")
+            Text("Make this feel like yours")
                 .font(.title2.bold())
                 .foregroundStyle(Color.brandPrimary)
 
-            Text("Keep what helps, soften what feels like too much.")
+            Text("Keep what helps. Turn off what doesn’t.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
@@ -207,14 +244,6 @@ struct SettingsView: View {
     // MARK: - Notification helpers
 
     private func loadState() {
-        CalmSpaceViewModel.migrateUnscopedDrawingsIfNeeded()
-        let profileID = CalmSpaceViewModel.currentProfileID()
-        if let stored = UserDefaults.standard.object(forKey: CalmSpaceViewModel.enabledKey(for: profileID)) as? Bool {
-            saveDrawingsEnabled = stored
-        } else {
-            saveDrawingsEnabled = UserDefaults.standard.bool(forKey: CalmSpaceViewModel.saveDrawingsEnabledKey)
-        }
-
         // Restore reminder time picker from saved hour/minute
         var comps        = Calendar.current.dateComponents([.year, .month, .day], from: Date())
         comps.hour       = reminderHour
@@ -251,8 +280,8 @@ struct SettingsView: View {
         center.removePendingNotificationRequests(withIdentifiers: [AppConfig.dailyReminderIdentifier])
 
         let content          = UNMutableNotificationContent()
-        content.title        = "A soft check-in 🌿"
-        content.body         = "How is your heart today? Even a few quiet moments with yourself can help."
+        content.title        = "Quick check-in"
+        content.body         = "How are you today? Take a minute when you can."
         content.sound        = .default
 
         var dateComponents   = DateComponents()
@@ -273,4 +302,14 @@ struct SettingsView: View {
 
 #Preview {
     SettingsView()
+}
+
+private struct ShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: items, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }

@@ -1,55 +1,56 @@
 /**
  * Mune OpenAI proxy.
- * Forwards chat-completions requests so the iOS app does not embed an API key.
+ * Duplicate of the previous worker, published as mune-openai-proxy.
  */
-const CORS_HEADERS = {
+
+const OPENAI_URL = "https://api.openai.com/v1/chat/completions";
+
+const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Allow-Headers": "content-type",
 };
 
 export default {
-  async fetch(request, env) {
-    if (request.method === "OPTIONS") {
-      return new Response(null, { status: 204, headers: CORS_HEADERS });
+  async fetch(req, env) {
+    if (req.method === "OPTIONS") {
+      return new Response("ok", { headers: corsHeaders });
     }
 
-    if (request.method !== "POST") {
-      return new Response("Method Not Allowed", {
-        status: 405,
-        headers: CORS_HEADERS,
-      });
+    if (req.method !== "POST") {
+      return new Response("Method not allowed", { status: 405 });
     }
 
     if (!env.OPENAI_API_KEY) {
-      return json({ error: "Proxy is missing OPENAI_API_KEY" }, 500);
+      return new Response(
+        JSON.stringify({ error: "Server configuration error" }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      );
     }
 
-    const body = await request.text();
+    let body;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "Invalid JSON body" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
 
-    const upstream = await fetch("https://api.openai.com/v1/chat/completions", {
+    const upstream = await fetch(OPENAI_URL, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${env.OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
-      body,
+      body: JSON.stringify(body),
     });
 
-    const text = await upstream.text();
-    return new Response(text, {
+    const data = await upstream.json();
+
+    return new Response(JSON.stringify(data), {
       status: upstream.status,
-      headers: {
-        "Content-Type": upstream.headers.get("Content-Type") || "application/json",
-        ...CORS_HEADERS,
-      },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   },
 };
-
-function json(payload, status) {
-  return new Response(JSON.stringify(payload), {
-    status,
-    headers: { "Content-Type": "application/json", ...CORS_HEADERS },
-  });
-}

@@ -19,6 +19,7 @@ final class JournalEntry {
     var gratitudeOne: String
     var gratitudeTwo: String
     var gratitudeThree: String
+    var exerciseID: String?
 
     init(
         userID: String,
@@ -29,7 +30,8 @@ final class JournalEntry {
         transcript: String? = nil,
         gratitudeOne: String,
         gratitudeTwo: String,
-        gratitudeThree: String
+        gratitudeThree: String,
+        exerciseID: String? = nil
     ) {
         self.userID = userID
         self.timestamp = timestamp
@@ -40,5 +42,6 @@ final class JournalEntry {
         self.gratitudeOne = gratitudeOne
         self.gratitudeTwo = gratitudeTwo
         self.gratitudeThree = gratitudeThree
+        self.exerciseID = exerciseID
     }
 }

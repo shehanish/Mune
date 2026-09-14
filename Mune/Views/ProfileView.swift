@@ -13,6 +13,7 @@ struct ProfileView: View {
     @AppStorage("userName")      var userName      = ""
     @AppStorage("healingFocus")  var healingFocus  = ""
     @AppStorage("profileImageData") var profileImageData: Data = Data()
+    @AppStorage("activeProfileID") private var activeProfileID = ""
 
     @Environment(\.dismiss) var dismiss
 
@@ -20,19 +21,20 @@ struct ProfileView: View {
     @State private var selectedItem: PhotosPickerItem? = nil
     @State private var profileImage: Image? = nil
     @State private var showSignOutAlert = false
+    @State private var selectedFocuses: Set<String> = []
 
-    // Derived focus chips from comma-separated storage
-    private var focusChips: [String] {
-        healingFocus
-            .split(separator: ",")
-            .map { $0.trimmingCharacters(in: .whitespaces) }
-            .filter { !$0.isEmpty }
-    }
+    private let focusOptions: [(title: String, subtitle: String, icon: String)] = [
+        ("Healing days",       "Count days since last contact",            "leaf.fill"),
+        ("Write it out",       "Get the feelings out of my head",          "heart.text.square.fill"),
+        ("Find my calm",       "Something to do when it gets loud",        "heart.circle.fill"),
+        ("Rebuild my routine", "Small steps back into my own life",        "sun.and.horizon.fill"),
+    ]
 
     var body: some View {
         NavigationStack {
             ZStack {
                 Color.appBackgroundGradient.ignoresSafeArea()
+                ScrollView {
                     VStack(spacing: 24) {
 
                         // MARK: - Avatar hero
@@ -56,7 +58,6 @@ struct ProfileView: View {
                                     .overlay(Circle().stroke(Color.white, lineWidth: 3))
                                     .shadow(color: Color.brandPrimary.opacity(0.18), radius: 12, y: 6)
 
-                                    // Camera badge
                                     Image(systemName: "camera.fill")
                                         .font(.caption.weight(.bold))
                                         .foregroundStyle(.white)
@@ -79,14 +80,15 @@ struct ProfileView: View {
                             }
                             .accessibilityLabel("Change profile photo")
 
-                            // Name display
                             Text(userName.isEmpty ? "Friend" : userName)
                                 .font(.system(size: 22, weight: .bold, design: .rounded))
                                 .foregroundStyle(Color.textOnPrimary)
+                                .multilineTextAlignment(.center)
+                                .lineLimit(3)
+                                .minimumScaleFactor(0.75)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .padding(.horizontal, 20)
 
-                           
-
-                            // Remove photo link
                             if profileImage != nil || !profileImageData.isEmpty {
                                 Button {
                                     profileImageData = Data()
@@ -117,32 +119,25 @@ struct ProfileView: View {
                                     .autocorrectionDisabled()
                                     .font(.body)
                                     .padding(12)
-                                    .background(Color.cardSurface)
+                                    .background(Color.brandPrimary.opacity(0.06))
                                     .clipShape(RoundedRectangle(cornerRadius: 12))
                                     .foregroundStyle(Color.brandPrimary)
                                     .accessibilityLabel("Name or nickname")
                             }
 
-                            if !focusChips.isEmpty {
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Text("Healing focus")
-                                        .font(.caption.weight(.semibold))
-                                        .foregroundStyle(.secondary)
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text("Healing focus")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(.secondary)
 
-                                    ChipFlowLayout(spacing: 6) {
-                                        ForEach(focusChips, id: \.self) { chip in
-                                            Text(chip)
-                                                .font(.subheadline.weight(.medium))
-                                                .foregroundStyle(Color.brandPrimary)
-                                                .padding(.horizontal, 12)
-                                                .padding(.vertical, 6)
-                                                .background(Color.brandPrimary.opacity(0.10), in: Capsule(style: .continuous))
-                                        }
+                                Text("Pick what you need most. This personalizes one tip on Home.")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+
+                                VStack(spacing: 8) {
+                                    ForEach(focusOptions, id: \.title) { option in
+                                        focusToggleRow(option)
                                     }
-
-                                    Text("You chose this when you arrived. It guides my gentle tips.")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
                                 }
                             }
                         }
@@ -154,12 +149,7 @@ struct ProfileView: View {
 
                         // MARK: - Save button
                         Button {
-                            let trimmed = editName.trimmingCharacters(in: .whitespacesAndNewlines)
-                            userName = trimmed.isEmpty ? "Friend" : trimmed
-                            if !LocalProfileStore.activeProfileID.isEmpty {
-                                LocalProfileStore.updateDisplayName(userName, for: LocalProfileStore.activeProfileID)
-                            }
-                            dismiss()
+                            saveProfile()
                         } label: {
                             Text("Save my changes")
                                 .font(.headline.weight(.bold))
@@ -212,10 +202,93 @@ struct ProfileView: View {
             }
             .onAppear {
                 editName = userName
+                selectedFocuses = Self.parseFocusSet(healingFocus)
                 if !profileImageData.isEmpty, let uiImage = UIImage(data: profileImageData) {
                     profileImage = Image(uiImage: uiImage)
                 }
             }
+        }
+    }
+
+    private func focusToggleRow(_ option: (title: String, subtitle: String, icon: String)) -> some View {
+        let isOn = selectedFocuses.contains(option.title)
+        return Button {
+            if isOn {
+                selectedFocuses.remove(option.title)
+            } else {
+                selectedFocuses.insert(option.title)
+            }
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: option.icon)
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(Color.brandPrimary)
+                    .frame(width: 28)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(option.title)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Color.brandPrimary)
+                    Text(option.subtitle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+
+                Image(systemName: isOn ? "checkmark.circle.fill" : "circle")
+                    .font(.title3)
+                    .foregroundStyle(isOn ? Color.brandPrimary : Color.brandPrimary.opacity(0.28))
+            }
+            .padding(12)
+            .background(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(isOn ? Color.brandPrimary.opacity(0.10) : Color.brandPrimary.opacity(0.04))
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(option.title)
+        .accessibilityAddTraits(isOn ? [.isSelected] : [])
+    }
+
+    private func saveProfile() {
+        let trimmed = editName.trimmingCharacters(in: .whitespacesAndNewlines)
+        userName = trimmed.isEmpty ? "Friend" : trimmed
+
+        let focusOrder = focusOptions.map(\.title)
+        let joined = focusOrder.filter { selectedFocuses.contains($0) }.joined(separator: ", ")
+        healingFocus = joined
+
+        if !activeProfileID.isEmpty {
+            LocalProfileStore.updateDisplayName(userName, for: activeProfileID)
+            LocalProfileStore.updateHealingFocus(joined, for: activeProfileID)
+        }
+
+        dismiss()
+    }
+
+    private static func parseFocusSet(_ raw: String) -> Set<String> {
+        let parts = raw
+            .split(separator: ",")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+
+        var result = Set<String>()
+        for part in parts {
+            switch part {
+            case "No contact", "Healing days":
+                result.insert("Healing days")
+            case "Process the grief", "Write it out":
+                result.insert("Write it out")
+            case "Hard moments", "Find my calm":
+                result.insert("Find my calm")
+            case "Rebuild my routine":
+                result.insert("Rebuild my routine")
+            default:
+                result.insert(part)
+            }
+        }
+        return result
     }
 }
 

@@ -44,7 +44,6 @@ struct SavedDrawing: Identifiable, Codable, Equatable {
 
 @Observable
 class CalmSpaceViewModel {
-    var ventText = ""
     var doodleLines: [DoodleLine] = []
     var savedDrawings: [SavedDrawing] = []
     var quoteIndex = 0
@@ -77,11 +76,11 @@ class CalmSpaceViewModel {
     private var audioPlayer: AVAudioPlayer?
 
     let quotes = [
-        "The urge to text them will soften. Stay with me through this wave.",
-        "Missing them is human. That doesn’t mean you have to go back.",
-        "You’re allowed to grieve and still take one soft step forward.",
-        "Gentle distance can be a quiet way of caring for yourself.",
-        "Healing isn’t linear. Showing up today still counts."
+        "You can take up space in your own life again. Slow still counts.",
+        "There’s room today for ease, hope, and you.",
+        "You’re allowed to feel better. One small step still counts.",
+        "Coming back to yourself can be quiet and still good.",
+        "Healing isn’t a straight line. Showing up for yourself today still matters."
     ]
 
     static func currentProfileID() -> String {
@@ -149,10 +148,9 @@ class CalmSpaceViewModel {
         }
     }
 
-    /// Reload drawings when switching profiles. Clears the live canvas and vent text.
+    /// Reload drawings when switching profiles. Clears the live canvas.
     func loadForActiveProfile() {
         Self.migrateUnscopedDrawingsIfNeeded()
-        ventText = ""
         doodleLines = []
         quoteIndex = 0
 
@@ -187,10 +185,6 @@ class CalmSpaceViewModel {
 
     func clearCanvas() {
         doodleLines.removeAll()
-    }
-
-    func clearVentText() {
-        ventText = ""
     }
 
     func addDoodlePoint(_ point: CGPoint, isNew: Bool) {

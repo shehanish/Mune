@@ -46,6 +46,12 @@ struct BreathingCircleView: View {
         .frame(width: outerSize, height: outerSize)
         .frame(maxWidth: .infinity)
         .task {
+            guard !MotionPreference.shouldReduceMotion else {
+                scale = 1.0
+                isInhaling = true
+                return
+            }
+
             scale = 0.6
             isInhaling = true
 

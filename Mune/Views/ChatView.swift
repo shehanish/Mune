@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ChatView: View {
+    @Environment(\.recoveryNavigator) private var navigator
     @State private var vm: ChatViewModel
     @FocusState private var isInputFocused: Bool
 
@@ -27,7 +28,9 @@ struct ChatView: View {
                     ScrollView(.vertical, showsIndicators: false) {
                         VStack(spacing: 16) {
                             ForEach(vm.messages) { message in
-                                MessageBubble(message: message)
+                                MessageBubble(message: message) { exercise in
+                                    navigator.handle(exercise.destination)
+                                }
                                     .id(message.id)
                             }
                         }
@@ -59,18 +62,17 @@ struct ChatView: View {
     }
 
     private var chatHeader: some View {
-        VStack(spacing: 4) {
-            Text("Talk with me")
+        VStack(spacing: 3) {
+            Text("Recovery coach")
                 .font(.headline.bold())
                 .foregroundStyle(Color.brandPrimary)
-            Text("Gentle breakup support · Not therapy or crisis care")
-                .font(.caption)
-                .foregroundStyle(Color.brandPrimary.opacity(0.52))
-            Text("If you’re in danger, call emergency services or find a local helpline")
+            Text("Not therapy. Chat may use AI. If you’re in danger, call emergency services.")
                 .font(.caption2)
-                .foregroundStyle(Color.brandPrimary.opacity(0.45))
+                .foregroundStyle(Color.brandPrimary.opacity(0.5))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 16)
         }
-        .padding(.vertical, 12)
+        .padding(.vertical, 10)
         .frame(maxWidth: .infinity)
         .background(.ultraThinMaterial)
         .overlay(alignment: .bottom) {
@@ -96,7 +98,7 @@ struct ChatView: View {
                             .offset(y: -1)
                     }
 
-                    Text("thinking with you…")
+                    Text("thinking…")
                         .font(.caption)
                         .foregroundColor(.gray)
                         .padding(.horizontal, 10)
@@ -110,8 +112,28 @@ struct ChatView: View {
                 .padding(.bottom, 8)
             }
 
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(ChatViewModel.starterChips, id: \.self) { chip in
+                        Button {
+                            vm.applyStarterChip(chip)
+                        } label: {
+                            Text(chip)
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(Color.brandPrimary)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .background(Color.brandPrimary.opacity(0.10), in: Capsule())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal)
+            }
+            .padding(.top, 8)
+
             HStack(alignment: .bottom, spacing: 10) {
-                TextField("Share what’s on your heart...", text: $vm.inputText, axis: .vertical)
+                TextField("What’s the loudest thing right now?", text: $vm.inputText, axis: .vertical)
                     .focused($isInputFocused)
                     .padding(14)
                     .background(Color.cardSurfaceStrong)

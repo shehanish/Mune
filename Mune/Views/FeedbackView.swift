@@ -85,7 +85,7 @@ struct FeedbackView: View {
                 .font(.title2.bold())
                 .foregroundStyle(Color.brandPrimary)
 
-            Text("Tell me what’s helping, what’s confusing, or what would feel kinder next. Screenshots help a lot.")
+            Text("Tell me what’s helping, what’s confusing, or what you’d change. Screenshots help a lot.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }

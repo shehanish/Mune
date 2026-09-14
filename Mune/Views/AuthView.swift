@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - AuthView
 // 4-page onboarding: Welcome → Name → Focus → Complete
-// Fully local — no account required (App Store compliant).
+// Fully local. No account required (App Store compliant).
 
 struct AuthView: View {
 
@@ -16,7 +16,7 @@ struct AuthView: View {
     // MARK: - Transient state
     @State private var name          = ""
     @State private var step          = 0           // 0 = welcome, 1 = name, 2 = focus, 3 = complete
-    @State private var selectedFocuses: Set<String> = ["Healing days"]
+    @State private var selectedFocuses: Set<String> = ["Rebuild my routine"]
     @State private var trackHealingDays = true
     @State private var healingDaysStartDate = Date()
     @State private var didCustomizeHealingDaysStartDate = false
@@ -25,10 +25,10 @@ struct AuthView: View {
 
     // MARK: - Data
     private let focusOptions: [(title: String, subtitle: String, icon: String)] = [
-        ("Healing days",       "Be with me when I want to reach out",      "leaf.fill"),
-        ("Process the grief",  "A safe place to feel it, write it, say it", "heart.text.square.fill"),
-        ("Hard moments",       "Gentle help when I want to text them",     "heart.circle.fill"),
-        ("Rebuild my routine", "Small, kind steps back to myself",         "sun.and.horizon.fill"),
+        ("Healing days",       "Count days since last contact",            "leaf.fill"),
+        ("Write it out",       "Get the feelings out of my head",          "heart.text.square.fill"),
+        ("Find my calm",       "Something to do when it gets loud",        "heart.circle.fill"),
+        ("Rebuild my routine", "Small steps back into my own life",        "sun.and.horizon.fill"),
     ]
 
     private let indicatorSteps = 2   // steps 1 & 2 show the dot indicator
@@ -73,7 +73,7 @@ struct AuthView: View {
             }
             .animation(.spring(response: 0.46, dampingFraction: 0.82), value: step)
             .toolbar {
-                // Skip — only on name and focus steps
+                // Skip only on name and focus steps
                 if step == 1 || step == 2 {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button("Skip") {
@@ -91,10 +91,18 @@ struct AuthView: View {
         .onAppear {
             name = (userName.isEmpty || userName == "Friend") ? "" : userName
             let saved = healingFocus.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
-            var focuses = saved.isEmpty ? ["Healing days"] : Set(saved)
+            var focuses: Set<String> = saved.isEmpty ? ["Rebuild my routine"] : Set(saved)
             if focuses.contains("No contact") {
                 focuses.remove("No contact")
                 focuses.insert("Healing days")
+            }
+            if focuses.contains("Process the grief") {
+                focuses.remove("Process the grief")
+                focuses.insert("Write it out")
+            }
+            if focuses.contains("Hard moments") {
+                focuses.remove("Hard moments")
+                focuses.insert("Find my calm")
             }
             selectedFocuses = focuses
             refreshHealingDaysStartDateIfNeeded()
@@ -138,7 +146,7 @@ struct AuthView: View {
                     .font(.system(size: 30, weight: .bold, design: .rounded))
                     .foregroundStyle(Color.textOnPrimary)
 
-                Text("I’m here to walk with you through this.\nOne soft day at a time.")
+                Text("A breakup companion for the days\nwhen everything still hurts.")
                     .font(.body)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(Color.textOnPrimary.opacity(0.80))
@@ -146,18 +154,18 @@ struct AuthView: View {
             }
 
             VStack(spacing: 10) {
-                featurePill(icon: "lock.fill",          label: "Private. Your story stays on your device")
-                featurePill(icon: "brain.head.profile", label: "Gentle, breakup-aware support when you need it")
-                featurePill(icon: "leaf.fill",          label: "Calm tools for hard, tender moments")
+                featurePill(icon: "lock.fill",          label: "Journal and check-ins stay on your phone")
+                featurePill(icon: "brain.head.profile", label: "Chat uses AI for recovery support")
+                featurePill(icon: "leaf.fill",          label: "Calm tools, journaling, and daily check-ins")
             }
 
-            Text("Mune offers kind support, not therapy or medical care. If you’re in crisis, find a local helpline or call emergency services.")
+            Text("Mune is support, not therapy or medical care. If you’re in crisis, find a local helpline or call emergency services.")
                 .font(.caption)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(Color.textOnPrimary.opacity(0.62))
                 .padding(.top, 4)
 
-            primaryButton("Walk with me") { advance() }
+            primaryButton("Continue") { advance() }
         }
         .padding(.horizontal, 28)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -172,7 +180,7 @@ struct AuthView: View {
                 pageHeader(
                     icon: "person.crop.circle.fill",
                     title: "What should I call you?",
-                    message: "A first name or nickname is perfect. This little space is yours."
+                    message: "A first name or nickname is perfect."
                 )
                 .padding(.bottom, 28)
 
@@ -201,9 +209,14 @@ struct AuthView: View {
                         if showNameError {
                             Label("Could you keep it under 30 characters?", systemImage: "exclamationmark.circle")
                                 .foregroundStyle(.red.opacity(0.80))
+                                .fixedSize(horizontal: false, vertical: true)
                         } else if !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                            Label("Hi, \(name.trimmingCharacters(in: .whitespacesAndNewlines)) . It’s so nice to meet you.", systemImage: "hand.wave.fill")
-                                .foregroundStyle(Color.textOnPrimary.opacity(0.72))
+                            HStack(alignment: .top, spacing: 6) {
+                                Image(systemName: "hand.wave.fill")
+                                Text("Hi, \(name.trimmingCharacters(in: .whitespacesAndNewlines)). It’s so nice to meet you.")
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            .foregroundStyle(Color.textOnPrimary.opacity(0.72))
                         } else {
                             Text("I’ll greet you by this name.")
                                 .foregroundStyle(Color.textOnPrimary.opacity(0.60))
@@ -241,7 +254,7 @@ struct AuthView: View {
 
                 pageHeader(
                     title: "What do you need\nmost right now?",
-                    message: "Choose anything that feels true. I’ll gently focus on what matters for your heart right now."
+                    message: "Pick whatever fits. This helps personalize one tip on Home. You can change it later in Profile."
                 )
                 .padding(.bottom, 24)
 
@@ -264,7 +277,7 @@ struct AuthView: View {
 
                 HStack(spacing: 12) {
                     secondaryButton("Back") { back() }
-                    primaryButton("Come into Mune") { completeOnboarding() }
+                    primaryButton("Continue") { completeOnboarding() }
                 }
                 .padding(.horizontal, 28)
                 .padding(.bottom, 48)
@@ -286,9 +299,12 @@ struct AuthView: View {
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundStyle(Color.textOnPrimary)
                     .multilineTextAlignment(.center)
+                    .lineLimit(4)
+                    .minimumScaleFactor(0.75)
+                    .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
 
-                Text("Your space is ready.\nTake a breath. We’ll go gently, one day at a time.")
+                Text("You’re all set.\nWhenever you’re ready, we can start.")
                     .font(.body)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(Color.textOnPrimary.opacity(0.78))
@@ -419,11 +435,11 @@ struct AuthView: View {
                     .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("Gently track my healing days")
+                    Text("Count days since last contact")
                         .font(.headline)
                         .foregroundStyle(Color.textOnPrimary)
 
-                    Text("A quiet count of days since you last had contact, only if it feels helpful.")
+                    Text("Starts from the last time you reached out. Optional.")
                         .font(.caption)
                         .foregroundStyle(Color.textOnPrimary.opacity(0.65))
                         .fixedSize(horizontal: false, vertical: true)
@@ -434,7 +450,7 @@ struct AuthView: View {
                 Toggle("", isOn: $trackHealingDays)
                     .labelsHidden()
                     .tint(Color.brandPrimary)
-                    .accessibilityLabel("Gently track my healing days")
+                    .accessibilityLabel("Count days since last contact")
             }
 
             if trackHealingDays {
@@ -463,7 +479,7 @@ struct AuthView: View {
                     .padding(.vertical, 10)
                     .background(Color.cardSurfaceStrong, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
 
-                    Text("You can change this anytime from Home. No pressure.")
+                    Text("You can reset and start again later from Healing days if you need to.")
                         .font(.caption2)
                         .foregroundStyle(Color.textOnPrimary.opacity(0.52))
                 }

@@ -18,16 +18,19 @@ struct ChatMessage: Identifiable, Equatable {
     let isUser: Bool
     let senderName: String
     let kind: ChatMessageKind
+    let exercise: CoachExercise?
 
     init(
         text: String,
         isUser: Bool,
         senderName: String,
-        kind: ChatMessageKind = .text
+        kind: ChatMessageKind = .text,
+        exercise: CoachExercise? = nil
     ) {
         self.text = text
         self.isUser = isUser
         self.senderName = senderName
         self.kind = kind
+        self.exercise = exercise
     }
 }

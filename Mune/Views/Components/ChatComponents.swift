@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MessageBubble: View {
     let message: ChatMessage
+    var onExercise: ((CoachExercise) -> Void)?
 
     var body: some View {
         switch message.kind {
@@ -20,6 +21,8 @@ struct MessageBubble: View {
                     Text(message.senderName)
                         .font(.caption2)
                         .foregroundStyle(Color.brandPrimary.opacity(0.7))
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
 
                     Text(message.text)
                         .padding(14)
@@ -33,6 +36,8 @@ struct MessageBubble: View {
                     Text(message.senderName)
                         .font(.caption2)
                         .foregroundStyle(Color.brandPrimary.opacity(0.7))
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
 
                     HStack(alignment: .center, spacing: 8) {
                         ZStack {
@@ -49,12 +54,30 @@ struct MessageBubble: View {
                                 .offset(y: -1)
                         }
 
-                        Text(message.text)
-                            .padding(14)
-                            .background(Color.sageGreen.opacity(0.15))
-                            .foregroundColor(Color.textOnPrimary)
-                            .clipShape(RoundedRectangle(cornerRadius: 20))
-                            .cornerRadius(4, corners: [.bottomLeft])
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(message.text)
+                                .padding(14)
+                                .background(Color.sageGreen.opacity(0.15))
+                                .foregroundColor(Color.textOnPrimary)
+                                .clipShape(RoundedRectangle(cornerRadius: 20))
+                                .cornerRadius(4, corners: [.bottomLeft])
+
+                            if let exercise = message.exercise {
+                                Button {
+                                    onExercise?(exercise)
+                                } label: {
+                                    HStack(spacing: 4) {
+                                        Text("Do this exercise")
+                                        Image(systemName: "arrow.right")
+                                            .font(.caption2.weight(.semibold))
+                                    }
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(Color.brandPrimary)
+                                }
+                                .buttonStyle(.plain)
+                                .padding(.leading, 4)
+                            }
+                        }
                         Spacer(minLength: 40)
                     }
                 }

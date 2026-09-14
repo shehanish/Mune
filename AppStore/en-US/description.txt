@@ -1,21 +1,27 @@
-Mune is a private breakup companion for the moments that feel unbearable — when you want to send the text, check their profile, or start the day already heavy.
+Mune is a private breakup companion for the moments that feel unbearable: when you want to send the text, check their profile, or start the day already heavy.
 
-RIDE THIS WAVE
-A two-minute pause when the urge to reach out hits. Breathe through it. Write it here if you need to. Nothing is saved or sent.
+WHEN YOU WANT TO TEXT THEM
+One tap slows the moment down. Sit through a short pause, look at the thought again, and decide with a clearer head. Nothing here is saved or sent.
+
+TWO QUIET MINUTES
+A short timer for when the feeling spikes. Stay with it until it softens. No decisions to make, nothing saved, nothing sent.
 
 CALM SPACE
-Guided breathing, 5-4-3-2-1 grounding, a private vent pad, drawing, and a way to call someone you trust. Crisis links are here if a friend is not enough.
+Guided breathing, 5-4-3-2-1 grounding, a drawing pad, and a way to call someone you trust. Crisis links are here if a friend is not enough.
 
 TALK WITH MUNE
-Breakup-aware support for grief, missing someone, and getting through the hard hours. Chat stays in memory. It is not stored in the app.
+Breakup-aware support for grief, missing someone, and getting through the hard hours.
 
 JOURNAL YOUR WAY
-Write or record by voice. Use gentle prompts, including a letter you will not send. Your words stay on your iPhone.
+Write or record by voice. Gentle prompts for when you do not know where to start, including a letter you will not send.
 
 CHECK IN WITH YOURSELF
-Log how you feel. See a quiet picture of your week. Optionally keep healing days as a reminder you are caring for yourself — not as a streak to protect.
+Log how you feel and see a quiet picture of your week. If it helps, count healing days since your last contact as care for yourself, not as a streak to protect.
 
-PRIVATE ON PURPOSE
-No account. No feed. No ads. Mood, journal, and profile data stay on your device. AI features go through our proxy to OpenAI only when you use them.
+REBUILD, ONE SMALL STEP
+Pick one small thing for your body, your mind, or the people around you. Mune keeps the days you showed up, not the days you missed.
 
-Mune offers support, not therapy. If you are in crisis, find a local helpline or call emergency services.
+YOURS TO KEEP OR DELETE
+No account, no feed, no ads. Journal entries, check-ins, rebuild steps, and your profile stay on this device. Chat messages and check-in insights are sent to AI through our proxy only when you use those features. You can export everything as a text file, or delete your space whenever you want.
+
+Mune offers support, not therapy. If you are in crisis, find a local helpline or call your local emergency number.

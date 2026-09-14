@@ -8,6 +8,7 @@ APP INFORMATION
 - Category: Lifestyle
 - Age rating: 12+ recommended (frequent/infrequent mature/suggestive themes around breakup distress; crisis resources present). Do not copy the competing Mend 4+ listing.
 - Privacy Policy: https://shehanish.github.io/Mune/privacy-policy.html
+- Terms of Use: https://shehanish.github.io/Mune/terms-of-use.html
 
 CREATE THE APP
 1. App Store Connect → Apps → New App
@@ -26,15 +27,15 @@ We are not affiliated with Novra Development LLC or Mend - No Contact Tracker. M
 
 The new submission is a distinct iPhone app:
 - Name and bundle ID: Mune / com.shehani.mune
-- Ride this wave: a timed urge-pause that is never saved or sent
-- Calm Space: breathing, grounding, drawing, vent pad, call-a-friend, crisis links
+- Two quiet minutes: a timed urge-pause that is never saved or sent
+- Calm Space: breathing, grounding, drawing, call-a-friend, crisis links
 - Voice journal, local multi-profile spaces, no account and no subscriptions
 
 Healing days is an optional quiet reminder, not the product. Please review Mune on that basis.
 
 SCREENSHOT ORDER (iPhone 6.9", 1320 x 2868)
 Upload from AppStore/screenshots/ in this order:
-1. 01-ride-this-wave.png
+1. 01-two-quiet-minutes.png
 2. 02-calm-space.png
 3. 03-home.png
 4. 04-chat.png

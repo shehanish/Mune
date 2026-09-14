@@ -2,7 +2,7 @@
 //  HealingFocus.swift
 //  Mune
 //
-//  Light personalization from onboarding focuses — one Home tip, not a full theme engine.
+//  Light personalization from onboarding focuses: one Home tip, not a full theme engine.
 //
 
 import Foundation
@@ -20,10 +20,16 @@ enum HealingFocus: String, CaseIterable {
             .filter { !$0.isEmpty }
 
         return Set(parts.compactMap { part in
-            if part == "No contact" || part == "Healing days" {
+            switch part {
+            case "No contact", "Healing days":
                 return .healingDays
+            case "Process the grief", "Write it out":
+                return .processGrief
+            case "Hard moments", "Find my calm":
+                return .hardMoments
+            default:
+                return HealingFocus(rawValue: part)
             }
-            return HealingFocus(rawValue: part)
         })
     }
 }
@@ -32,6 +38,7 @@ enum HealingFocusTipDestination {
     case healingDays
     case calmSpace
     case journal
+    case rebuild
     case checkIn
 }
 
@@ -48,8 +55,8 @@ enum HealingFocusTipBuilder {
     private static let priority: [HealingFocus] = [
         .hardMoments,
         .healingDays,
-        .processGrief,
-        .rebuildRoutine
+        .rebuildRoutine,
+        .processGrief
     ]
 
     static func tip(
@@ -63,36 +70,36 @@ enum HealingFocusTipBuilder {
         switch chosen {
         case .hardMoments:
             return HealingFocusTip(
-                title: "Feeling the urge?",
-                message: "If you want to text them, open Ride this wave in Calm Space. Two minutes. Nothing has to be sent.",
-                actionLabel: "Come to Calm Space",
+                title: "Need a break?",
+                message: "If feelings get loud, open Calm Space. We can take a few breaths together.",
+                actionLabel: "Open Calm Space",
                 icon: "heart.circle.fill",
                 destination: .calmSpace
             )
 
         case .healingDays:
             if healingDaysIsActive {
-                let dayText = healingDaysCount == 1 ? "1 gentle day" : "\(healingDaysCount) gentle days"
+                let dayText = healingDaysCount == 1 ? "1 day" : "\(healingDaysCount) days"
                 return HealingFocusTip(
                     title: "Healing days",
-                    message: "You’re on \(dayText). Peek anytime you need a quiet reminder you’re caring for yourself.",
-                    actionLabel: "See healing days",
+                    message: "You’re on \(dayText) without contact. That count is yours.",
+                    actionLabel: "See day count",
                     icon: "leaf.fill",
                     destination: .healingDays
                 )
             }
             return HealingFocusTip(
                 title: "Healing days",
-                message: "When you’re ready, we can track your gentle days so hard moments feel a little less alone.",
-                actionLabel: "See healing days",
+                message: "Want to count days since last contact? You can start anytime.",
+                actionLabel: "See day count",
                 icon: "leaf.fill",
                 destination: .healingDays
             )
 
         case .processGrief:
             return HealingFocusTip(
-                title: "Make room for the grief",
-                message: "Pour it onto the page when it needs somewhere kind to go. A breakup prompt can help you begin.",
+                title: "Write something down",
+                message: "One thing you did for yourself, or one thing you want this week. That’s enough.",
                 actionLabel: "Open your journal",
                 icon: "heart.text.square.fill",
                 destination: .journal
@@ -100,18 +107,18 @@ enum HealingFocusTipBuilder {
 
         case .rebuildRoutine:
             return HealingFocusTip(
-                title: "One small kindness",
-                message: "Rebuild gently. Write one thing you did for yourself today. Even something tiny counts.",
-                actionLabel: "Open your journal",
+                title: "Show up for yourself",
+                message: "Pick one small step for your body, mind, or people today.",
+                actionLabel: "Open Rebuild",
                 icon: "sun.and.horizon.fill",
-                destination: .journal
+                destination: .rebuild
             )
 
         case nil:
             return HealingFocusTip(
                 title: "Today",
-                message: "When feelings get loud, come into Calm Space with me and take one slow breath.",
-                actionLabel: "Come to Calm Space",
+                message: "Start small today. I’m here if you need a pause.",
+                actionLabel: "Open Calm Space",
                 icon: "heart.fill",
                 destination: .calmSpace
             )

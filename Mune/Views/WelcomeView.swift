@@ -55,7 +55,7 @@ struct WelcomeView: View {
                             .kerning(2)
                             .shadow(color: Color.brandPrimary.opacity(0.18), radius: 8, y: 4)
 
-                        Text("Heal what’s heavy")
+                        Text("Here for the hard days after")
                             .font(.system(size: 16, weight: .medium, design: .rounded))
                             .foregroundStyle(Color.textOnPrimary.opacity(0.72))
                             .multilineTextAlignment(.center)
@@ -80,7 +80,7 @@ struct WelcomeView: View {
                         showAuthSheet = true
                     } label: {
                         HStack(spacing: 10) {
-                            Text(profiles.isEmpty ? "I’m ready. Walk with me" : "Begin a new gentle space")
+                            Text(profiles.isEmpty ? "Get started" : "Start a new profile")
                                 .font(.system(size: 17, weight: .bold, design: .rounded))
                             Image(systemName: "arrow.right")
                                 .font(.subheadline.weight(.bold))
@@ -99,11 +99,11 @@ struct WelcomeView: View {
                         .shadow(color: Color.brandPrimary.opacity(0.32), radius: 16, y: 8)
                     }
 
-                    Text("Free · Private · Just for you. No account needed")
+                    Text("Free · No account needed")
                         .font(.caption)
                         .foregroundStyle(Color.textOnPrimary.opacity(0.48))
 
-                    Text("Mune offers support, not therapy. If you’re in crisis, find a local helpline or call emergency services.")
+                    Text("Journal and check-ins stay on your phone. Chat and check-in insights may use AI. Mune is support, not therapy.")
                         .font(.caption2)
                         .multilineTextAlignment(.center)
                         .foregroundStyle(Color.textOnPrimary.opacity(0.40))
@@ -155,19 +155,19 @@ struct WelcomeView: View {
     private var guestHighlights: some View {
         VStack(spacing: 12) {
             WelcomeFeatureRow(
-                icon: "water.waves",
-                title: "Ride the urge, don’t send it",
-                subtitle: "A two-minute pause when you want to text them"
+                icon: "sun.max.fill",
+                title: "Rebuild at your pace",
+                subtitle: "Small daily steps that feel doable"
             )
             WelcomeFeatureRow(
                 icon: "heart.circle.fill",
-                title: "Here for the hard moments",
-                subtitle: "When you want to text them, or everything feels like too much"
+                title: "Someone to talk to",
+                subtitle: "Honest support when your head won’t quiet down"
             )
             WelcomeFeatureRow(
                 icon: "lock.fill",
-                title: "A private place to grieve",
-                subtitle: "Your story stays on your device, only yours"
+                title: "Saved on your phone",
+                subtitle: "Journal and check-ins stay here. Chat may use AI."
             )
         }
         .padding(.horizontal, 24)
@@ -178,7 +178,7 @@ struct WelcomeView: View {
 
     private var profilePicker: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Welcome back. Pick up gently where you left off")
+            Text("Welcome back. Pick up where you left off.")
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(Color.textOnPrimary.opacity(0.75))
                 .padding(.horizontal, 28)
@@ -203,6 +203,9 @@ struct WelcomeView: View {
                                     Text(profile.displayName)
                                         .font(.headline)
                                         .foregroundStyle(Color.textOnPrimary)
+                                        .lineLimit(2)
+                                        .minimumScaleFactor(0.8)
+                                        .fixedSize(horizontal: false, vertical: true)
                                     Text("Come back in")
                                         .font(.caption)
                                         .foregroundStyle(Color.textOnPrimary.opacity(0.62))

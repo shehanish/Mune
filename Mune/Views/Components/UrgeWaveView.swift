@@ -10,8 +10,8 @@ import Combine
 
 struct UrgeWaveView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.recoveryNavigator) private var navigator
     @State private var secondsRemaining = Self.durationSeconds
-    @State private var note = ""
     @State private var didFinish = false
 
     private static let durationSeconds = 120
@@ -29,9 +29,9 @@ struct UrgeWaveView: View {
     private var phaseMessage: String {
         switch elapsed {
         case ..<25:
-            return "You want to reach out. That feeling is allowed to be here. You do not have to act on it."
+            return "This feeling can be here. You do not have to act on it. Stay with yourself."
         case ..<80:
-            return "Breathe. The urge is a wave, not a command. Nothing has to be sent for you to get through this."
+            return "Breathe. You’re allowed to pause. Come back to this moment, one breath at a time."
         default:
             return "You’re still here. The sharpest part is already softening. Stay until the timer ends."
         }
@@ -49,7 +49,7 @@ struct UrgeWaveView: View {
                     activeContent
                 }
             }
-            .navigationTitle("Ride this wave")
+            .navigationTitle("2 quiet minutes")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -97,27 +97,7 @@ struct UrgeWaveView: View {
 
                 BreathingCircleView()
 
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("If you need to say it, say it here")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(Color.brandPrimary)
-                    Text("This stays on this screen only. It is never saved, sent, or shared.")
-                        .font(.caption)
-                        .foregroundStyle(Color.brandPrimary.opacity(0.65))
-
-                    TextEditor(text: $note)
-                        .frame(minHeight: 90)
-                        .padding(8)
-                        .background(Color.cardSurfaceSoft)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .scrollContentBackground(.hidden)
-                }
-                .padding(16)
-                .background(Color.cardSurfaceMuted)
-                .clipShape(RoundedRectangle(cornerRadius: 22))
-                .padding(.horizontal)
-
-                Button("I’m through this wave") {
+                Button("I’m through these 2 minutes") {
                     didFinish = true
                 }
                 .font(.subheadline.weight(.semibold))
@@ -139,7 +119,7 @@ struct UrgeWaveView: View {
                 .font(.title.weight(.bold))
                 .foregroundStyle(Color.brandPrimary)
 
-            Text("The urge did not have to become a message. That is a real kind of healing — different from counting days, and different from sending the letter.")
+            Text("You got through the spike. That’s something.")
                 .font(.body)
                 .foregroundStyle(Color.textOnPrimary.opacity(0.85))
                 .multilineTextAlignment(.center)
@@ -147,8 +127,11 @@ struct UrgeWaveView: View {
 
             Button {
                 dismiss()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                    navigator.openJournalExercise(RecoveryExerciseID.miss)
+                }
             } label: {
-                Text("Back to Calm Space")
+                Text("What do I actually miss?")
                     .font(.headline)
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
@@ -158,6 +141,12 @@ struct UrgeWaveView: View {
             }
             .padding(.horizontal, 32)
             .padding(.top, 8)
+
+            Button("I’m ready") {
+                dismiss()
+            }
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(Color.brandPrimary)
 
             Spacer()
         }

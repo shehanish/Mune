@@ -26,7 +26,13 @@ struct MuneApp: App {
                 LocalProfileStore.migrateLegacyIfNeeded()
             }
         }
-        .modelContainer(for: [MoodEntry.self, JournalEntry.self])
+        .modelContainer(for: [
+            MoodEntry.self,
+            JournalEntry.self,
+            RealityCheckEntry.self,
+            RebuildGoal.self,
+            RecoverySnapshot.self
+        ])
         
     }
 }

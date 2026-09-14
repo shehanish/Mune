@@ -13,7 +13,7 @@ struct MoodPicker: View {
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 10) {
+            HStack(spacing: 8) {
                 ForEach(moods, id: \.self) { mood in
                     MoodChip(
                         title: mood,
@@ -23,10 +23,8 @@ struct MoodPicker: View {
                     }
                 }
             }
-            .padding(.horizontal)
-            .padding(.vertical, 6)
+            .padding(.vertical, 2)
         }
-        .frame(maxWidth: .infinity)
     }
 
     private func toggle(_ mood: String) {
@@ -50,11 +48,11 @@ private struct MoodChip: View {
             MuneChipLabel(
                 title: title,
                 isSelected: isSelected,
-                showsCheckmark: true,
+                showsCheckmark: false,
                 selectedForeground: .brandPrimary,
                 unselectedForeground: .brandPrimary,
-                selectedFill: Color.sageGreen.opacity(0.3),
-                unselectedFill: Color.chipSurface
+                selectedFill: Color.sageGreen.opacity(0.38),
+                unselectedFill: Color.white
             )
         }
         .buttonStyle(.plain)

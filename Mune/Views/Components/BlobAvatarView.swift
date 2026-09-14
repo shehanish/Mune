@@ -45,8 +45,9 @@ struct BlobAvatarView: View {
     }
     
     var body: some View {
+        let shouldAnimate = animate && !MotionPreference.shouldReduceMotion
         Group {
-            if animate {
+            if shouldAnimate {
                 TimelineView(.animation) { context in
                     content(phase: context.date.timeIntervalSinceReferenceDate)
                 }

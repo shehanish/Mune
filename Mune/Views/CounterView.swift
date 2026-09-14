@@ -43,12 +43,12 @@ struct CounterView: View {
                         VStack(spacing: 30) {
                             BlobAvatarView(width: 170, height: 120)
 
-                            Text("Ready for a little space?")
+                            Text("Days since last contact")
                                 .font(.title2)
                                 .fontWeight(.bold)
                                 .foregroundStyle(Color.textOnPrimary)
 
-                            Text("Healing days give you quiet room to come back to yourself — one gentle day at a time.")
+                            Text("Healing days is a simple count of how long you’ve gone without reaching out. Start from the last time you contacted them.")
                                 .font(.body)
                                 .multilineTextAlignment(.center)
                                 .foregroundStyle(Color.textOnPrimary.opacity(0.8))
@@ -59,7 +59,7 @@ struct CounterView: View {
                                 selectedPeriod = nil
                                 showSetupSheet = true
                             }) {
-                                Text("Begin healing days gently")
+                                Text("Start counting")
                                     .font(.headline)
                                     .fontWeight(.bold)
                                     .foregroundStyle(.white)

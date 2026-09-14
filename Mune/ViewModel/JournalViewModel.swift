@@ -33,6 +33,8 @@ final class JournalViewModel {
     var historyEntries: [JournalEntry] = []
     var timelineEntries: [TimelineEntry] = []
     var healingDashboard: HealingDashboard = .empty
+    var activeCrisisSignals: Set<CrisisSignal> = []
+    var crisisSupportMessage: String?
 
     private var audioEngine: AVAudioEngine?
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
@@ -61,48 +63,16 @@ final class JournalViewModel {
 
     static let breakupTemplates: [JournalTemplate] = [
         JournalTemplate(
-            id: "letter",
-            title: "Letter I won’t send",
-            body: """
-            Dear them,
-
-            I’m writing this because I need somewhere safe for these words, not because I’m sending them.
-
-            What I wish I could say:
-
-
-            What I’m really feeling underneath:
-
-
-            What I need for myself instead:
-
-            """
-        ),
-        JournalTemplate(
-            id: "miss-vs-need",
-            title: "What I miss vs what I need",
-            body: """
-            What I miss about them or the relationship:
-
-
-            What I actually need for my healing:
-
-
-            The difference between missing them and needing them back:
-
-            """
-        ),
-        JournalTemplate(
             id: "red-flags",
-            title: "Signs I want to remember",
+            title: "What I’m learning",
             body: """
-            Looking back with kindness, some signs I overlooked were:
+            Something I’m noticing about myself:
 
-            1.
-            2.
-            3.
 
-            What I want to gently remember if I ever doubt myself:
+            A strength I didn’t always see:
+
+
+            What I want to carry forward:
 
             """
         ),
@@ -121,14 +91,63 @@ final class JournalViewModel {
             What this tells me about who I’m becoming:
 
             """
+        ),
+        JournalTemplate(
+            id: "good-moment",
+            title: "A good moment today",
+            body: """
+            A moment today that felt good:
+
+
+            What made it feel that way:
+
+
+            How I can invite a little more of that:
+
+            """
+        ),
+        JournalTemplate(
+            id: "made-me-smile",
+            title: "Something that made me smile",
+            body: """
+            Something that made me smile today:
+
+
+            Who or what was part of it:
+
+
+            How my body felt in that moment:
+
+            """
+        ),
+        JournalTemplate(
+            id: "looking-forward",
+            title: "What I’m looking forward to",
+            body: """
+            Something I’m looking forward to:
+
+
+            Why it matters to me:
+
+
+            One small way I can enjoy today while I wait:
+
+            """
         )
     ]
 
     var selectedTemplateID: String?
 
     var canSaveEntry: Bool {
+        canSaveJournalWriting || canSaveGratitudes
+    }
+
+    var canSaveJournalWriting: Bool {
         !journalText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
-        !transcriptText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+        !transcriptText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    var canSaveGratitudes: Bool {
         !gratitudeOne.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
         !gratitudeTwo.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
         !gratitudeThree.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -199,6 +218,9 @@ final class JournalViewModel {
 
         MuneLog.debug("[JournalViewModel] saveJournalEntry started journal=\(!trimmedJournal.isEmpty) transcript=\(!trimmedTranscript.isEmpty) gratitudes=\(!trimmedGratitudeOne.isEmpty || !trimmedGratitudeTwo.isEmpty || !trimmedGratitudeThree.isEmpty)")
 
+        let combinedText = [trimmedJournal, trimmedTranscript].filter { !$0.isEmpty }.joined(separator: "\n")
+        let crisisSignals = CrisisSupportDetector.detect(in: combinedText)
+
         let entry = JournalEntry(
             userID: userID,
             moods: nil,
@@ -224,7 +246,17 @@ final class JournalViewModel {
             transcriptText = ""
             latestTranscript = ""
             selectedTemplateID = nil
-            statusMessage = "Saved. I’m holding this with you."
+            if crisisSignals.isEmpty {
+                activeCrisisSignals = []
+                crisisSupportMessage = nil
+                statusMessage = "Saved. I’m holding this with you."
+            } else {
+                activeCrisisSignals = crisisSignals
+                crisisSupportMessage = crisisSignals.contains(.harmToOthers)
+                    ? "Saved. If you or someone else might be in danger, please get help now."
+                    : "Saved. You don’t have to hold this alone. Please reach out for help now."
+                statusMessage = crisisSupportMessage
+            }
             MuneLog.debug("[JournalViewModel] saveJournalEntry success journalEntries=\(historyEntries.count) timeline=\(timelineEntries.count)")
         } catch {
             statusMessage = "I couldn’t save that just now. We can try again when you’re ready."
@@ -501,16 +533,22 @@ final class JournalViewModel {
         }
 
         let dominantMood = moodCounts.max(by: { $0.value < $1.value })?.key
-        let supportiveMoodCount = countMoodMatches(in: moodCounts, moods: ["Calm", "Hopeful", "Okay"])
-        let heavyMoodCount = countMoodMatches(in: moodCounts, moods: ["Anxious", "Sad", "Lonely", "Empty", "Angry", "Tired"])
+        let supportiveMoodCount = countMoodMatches(
+            in: moodCounts,
+            moods: ["Calm", "Hopeful", "Okay", "I'm doing okay", "Happy", "Excited", "Grateful"]
+        )
+        let heavyMoodCount = countMoodMatches(
+            in: moodCounts,
+            moods: ["Anxious", "Sad", "Lonely", "Empty", "Angry", "Tired", "Missing them", "Can't stop thinking", "Want to contact them"]
+        )
 
         let moodTrend: String
         if recentMoodEntries.isEmpty {
-            moodTrend = "As you check in, gentle patterns will appear here."
+            moodTrend = "As you check in, patterns will show up here."
         } else if supportiveMoodCount > heavyMoodCount {
             moodTrend = "This week looks a little steadier. More supportive feelings are showing up."
         } else if heavyMoodCount > supportiveMoodCount {
-            moodTrend = "This week held more heavy moments. Even so, you’re staying connected to yourself. That matters."
+            moodTrend = "This week asked more of you. You’re still showing up for yourself, and that matters."
         } else {
             moodTrend = "This week has felt mixed, and that’s okay. What matters is you kept showing up."
         }
@@ -524,9 +562,9 @@ final class JournalViewModel {
 
         let supportMessage: String
         if heavyMoodCount > supportiveMoodCount {
-            supportMessage = "If today feels heavy, try one soft step: a slow breath, a sip of water, or a message to someone safe."
+            supportMessage = "Try one small thing: a breath, water, a short walk, or a text to someone you trust."
         } else if gratitudeDays > 0 {
-            supportMessage = "Keep noticing what helps. Your gratitude and check-ins are painting a kinder picture of your healing."
+            supportMessage = "Keep noticing what helps. Your check-ins are starting to show what’s working."
         } else {
             supportMessage = "A few more entries will help me gently show you what supports you most."
         }
@@ -630,7 +668,7 @@ final class JournalViewModel {
             weeklyCheckIns: 0,
             gratitudeDays: 0,
             dominantMood: nil,
-            moodTrend: "As you check in, gentle patterns will appear here.",
+            moodTrend: "As you check in, patterns will show up here.",
             themes: [],
             supportMessage: "A few more entries will help me gently show you what supports you most."
         )

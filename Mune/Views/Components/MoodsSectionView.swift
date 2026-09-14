@@ -16,65 +16,67 @@ struct MoodsSectionView: View {
     var isNotesFocused: FocusState<Bool>.Binding
     var canShare: Bool = true
     var isSharing: Bool = false
+    var showsTitle: Bool = true
+    var title: String = "How are you feeling?"
 
     var onApply: (_ appliedMoods: [String]) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("How do you feel today?")
-                .font(.headline)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal)
-                .foregroundStyle(Color.brandPrimary)
+            if showsTitle {
+                Text(title)
+                    .font(.headline)
+                    .foregroundStyle(Color.brandPrimary)
+            }
 
             MoodPicker(moods: moods, selectedMoods: $selectedMoods)
 
-            VStack(spacing: 12) {
-                SelectedMoodsBox(selectedMoods: Array(selectedMoods).sorted())
-                    .frame(maxWidth: 420)
-                    .frame(maxWidth: .infinity, alignment: .center)
+            Text("Pick one or more feelings above.")
+                .font(.footnote)
+                .foregroundStyle(Color.brandPrimary.opacity(0.45))
+                .frame(maxWidth: .infinity)
 
-                VStack(alignment: .leading, spacing: 8) {
-                    TextField("Write whatever is on your heart…", text: $notesText, axis: .vertical)
-                        .focused(isNotesFocused)
-                        .lineLimit(3...6)
-                        .padding(12)
-                        .background(Color.fieldSurface)
-                        .clipShape(RoundedRectangle(cornerRadius: 14))
-                        .textInputAutocapitalization(.sentences)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 14)
-                                .stroke(Color.brandPrimary.opacity(0.35), lineWidth: 1)
-                        )
-                }
-
-                Button {
-                    guard canShare, !isSharing else { return }
-                    onApply(Array(selectedMoods).sorted())
-                } label: {
-                    HStack(spacing: 8) {
-                        if isSharing {
-                            ProgressView()
-                                .tint(.white)
-                        }
-                        Text(isSharing ? "Sharing…" : "Share this with me")
-                            .fontWeight(.bold)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(canShare ? Color.brandFill : Color.brandFill.opacity(0.35))
-                    .foregroundStyle(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
-                }
-                .buttonStyle(.plain)
-                .disabled(!canShare)
-                .accessibilityHint(
-                    canShare
-                    ? "Saves this check-in"
-                    : "Pick a feeling or write a note first"
+            TextField("A note, if you want…", text: $notesText, axis: .vertical)
+                .focused(isNotesFocused)
+                .lineLimit(2...4)
+                .padding(16)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .fill(Color.white)
                 )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(Color.brandPrimary.opacity(0.12), lineWidth: 1)
+                )
+                .shadow(color: Color.brandPrimary.opacity(0.08), radius: 10, x: 0, y: 4)
+                .textInputAutocapitalization(.sentences)
+
+            Button {
+                guard canShare, !isSharing else { return }
+                onApply(Array(selectedMoods).sorted())
+            } label: {
+                HStack(spacing: 8) {
+                    if isSharing {
+                        ProgressView()
+                            .tint(.white)
+                    }
+                    Text(isSharing ? "Saving…" : "Check in")
+                        .font(.system(size: 16, weight: .semibold, design: .rounded))
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 13)
+                .background(canShare ? Color.brandFill : Color.brandFill.opacity(0.35))
+                .foregroundStyle(.white)
+                .clipShape(Capsule())
             }
-            .padding(.horizontal)
+            .buttonStyle(.plain)
+            .disabled(!canShare)
+            .accessibilityHint(
+                canShare
+                ? "Saves this check-in"
+                : "Pick a feeling or write a note first"
+            )
         }
     }
 }
@@ -83,12 +85,9 @@ struct MoodsSectionView: View {
 }
 
 private struct MoodsSectionViewPreviewWrapper: View {
-    private let moods = [
-        "Calm", "Sad", "Angry", "Anxious",
-        "Okay", "Hopeful", "Tired", "Lonely", "Empty"
-    ]
+    private let moods = RecoveryMood.checkInOptions
 
-    @State private var selectedMoods: Set<String> = ["Calm", "Tired"]
+    @State private var selectedMoods: Set<String> = ["Sad", "I'm doing okay"]
     @State private var notesText: String = "I felt a bit overwhelmed today, but better now."
     @FocusState private var isNotesFocused: Bool
 

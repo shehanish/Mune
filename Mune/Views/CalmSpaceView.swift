@@ -12,7 +12,7 @@ struct CalmSpaceView: View {
     @State private var showContactPicker = false
     @State private var showDrawingPad = false
     @State private var showDrawingFolder = false
-    @State private var showUrgeWave = false
+    @Environment(\.recoveryNavigator) private var navigator
 
     var body: some View {
         NavigationStack {
@@ -20,342 +20,63 @@ struct CalmSpaceView: View {
                 Color.appBackgroundGradient
                     .ignoresSafeArea()
 
+                ScrollViewReader { proxy in
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 24) {
+                    VStack(spacing: 14) {
 
-                        HStack(alignment: .top) {
-                            Text(vm.currentQuote)
-                                .font(.title3.italic())
-                                .foregroundColor(.brandPrimary)
-                                .frame(maxWidth: .infinity, alignment: .center)
-                                .onTapGesture {
-                                    vm.nextQuote()
-                                }
-                        }
-                        .padding(.horizontal)
-                        .padding(.top, 16)
+                        Text(vm.currentQuote)
+                            .font(.footnote.italic())
+                            .foregroundColor(.brandPrimary.opacity(0.7))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 24)
+                            .padding(.top, 12)
+                            .onTapGesture { vm.nextQuote() }
 
                         Button {
-                            showUrgeWave = true
+                            navigator.openContactUrge()
                         } label: {
-                            HStack(spacing: 14) {
-                                Image(systemName: "water.waves")
-                                    .font(.title2)
-                                    .foregroundStyle(Color.brandPrimary)
-                                    .frame(width: 44, height: 44)
-                                    .background(Color.brandPrimary.opacity(0.12))
-                                    .clipShape(Circle())
-
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text("I want to reach out")
+                            HStack(spacing: 12) {
+                                Image(systemName: "exclamationmark.heart.fill")
+                                    .font(.title3)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("I want to text them")
                                         .font(.headline)
-                                        .foregroundStyle(Color.brandPrimary)
-                                    Text("A 2-minute pause so the urge can pass without a text. Nothing is saved or sent.")
+                                    Text("Slow down before you send")
                                         .font(.caption)
-                                        .foregroundStyle(Color.brandPrimary.opacity(0.7))
-                                        .multilineTextAlignment(.leading)
-                                        .fixedSize(horizontal: false, vertical: true)
+                                        .opacity(0.8)
                                 }
-
                                 Spacer()
-
-                                Image(systemName: "chevron.right")
-                                    .font(.caption.weight(.semibold))
-                                    .foregroundStyle(Color.brandPrimary.opacity(0.45))
+                                Image(systemName: "arrow.right")
+                                    .font(.footnote.weight(.bold))
                             }
+                            .foregroundStyle(.white)
                             .padding(16)
-                            .background(Color.cardSurfaceMuted)
-                            .clipShape(RoundedRectangle(cornerRadius: 24))
+                            .background(Color.brandFill)
+                            .clipShape(RoundedRectangle(cornerRadius: 20))
                         }
                         .buttonStyle(.plain)
                         .padding(.horizontal)
-                        .accessibilityLabel("I want to reach out. A two minute pause so the urge can pass without a text.")
+                        .accessibilityLabel("I want to text them. Slow down before you send.")
 
-                        VStack(spacing: 16) {
-                            Text("Breathe with me")
-                                .font(.headline)
-                                .foregroundColor(.brandPrimary)
-                                .frame(maxWidth: .infinity, alignment: .center)
+                        callAFriendCard
+                        breatheCard
+                        rideTheWaveCard
+                        groundCard
+                        drawCard
+                        writeInJournalCard
+                        peopleCard
 
-                            BreathingCircleView()
-
-                            Button(action: {
-                                vm.toggleMusic()
-                            }) {
-                                HStack {
-                                    Image(systemName: vm.isPlayingMusic ? "speaker.wave.3.fill" : "speaker.slash.fill")
-                                    Text(vm.isPlayingMusic ? "Soft sound is playing" : "Play a soft sound")
-                                }
-                                .font(.footnote.bold())
-                                .foregroundColor(.brandPrimary)
-                                .padding(.vertical, 8)
-                                .padding(.horizontal, 16)
-                                .background(Color.cardSurfaceMuted)
-                                .clipShape(Capsule())
-                            }
-                        }
-                        .padding(.vertical)
-                        .frame(maxWidth: .infinity)
-                        .background(Color.cardSurfaceMuted)
-                        .clipShape(RoundedRectangle(cornerRadius: 24))
-                        .padding(.horizontal)
-
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Come back to this moment (5-4-3-2-1)")
-                                .font(.headline)
-                                .foregroundColor(.brandPrimary)
-
-                            Text("Gently look around and notice:")
-                                .font(.subheadline)
-                                .foregroundColor(.brandPrimary.opacity(0.8))
-
-                            VStack(alignment: .leading, spacing: 8) {
-                                GroundingRow(number: "5", text: "Things your eyes can find", icon: "eye.fill")
-                                GroundingRow(number: "4", text: "Things your hands can feel", icon: "hand.tap.fill")
-                                GroundingRow(number: "3", text: "Sounds around you", icon: "ear.fill")
-                                GroundingRow(number: "2", text: "Scents you notice", icon: "nose.fill")
-                                GroundingRow(number: "1", text: "Something you can taste", icon: "mouth.fill")
-                            }
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color.cardSurfaceMuted)
-                        .clipShape(RoundedRectangle(cornerRadius: 24))
-                        .padding(.horizontal)
-
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text("Draw it out")
-                                        .font(.headline)
-                                        .foregroundColor(.brandPrimary)
-
-                                    Text(vm.saveDrawingsEnabled
-                                         ? "Draw, name, and keep pieces in your private folder."
-                                         : "Draw to let it out. To keep drawings: go to Home, tap the profile icon, open Settings, and turn on Save drawings.")
-                                        .font(.caption)
-                                        .foregroundColor(.brandPrimary.opacity(0.7))
-                                        .fixedSize(horizontal: false, vertical: true)
-                                }
-
-                                Spacer()
-
-                                Image(systemName: "pencil.tip.crop.circle.badge.plus")
-                                    .font(.title3)
-                                    .foregroundColor(.sageGreen)
-                            }
-
-                            Button(action: {
-                                vm.clearCanvas()
-                                showDrawingPad = true
-                            }) {
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .fill(Color.cardSurfaceSoft)
-                                    .frame(height: 96)
-                                    .overlay(
-                                        VStack(spacing: 8) {
-                                            Image(systemName: "scribble.variable")
-                                                .font(.title2)
-                                                .foregroundColor(.brandPrimary.opacity(0.75))
-                                            Text("Start a blank page")
-                                                .font(.subheadline.weight(.semibold))
-                                                .foregroundColor(.brandPrimary)
-                                        }
-                                    )
-                            }
-                            .buttonStyle(.plain)
-
-                            if vm.saveDrawingsEnabled {
-                                Button(action: {
-                                    showDrawingFolder = true
-                                }) {
-                                    HStack {
-                                        Label("My drawings", systemImage: "folder.fill")
-                                            .font(.subheadline.weight(.semibold))
-                                        Spacer()
-                                        Text("\(vm.savedDrawings.count)")
-                                            .font(.caption.weight(.bold))
-                                            .foregroundColor(.brandPrimary)
-                                            .padding(.horizontal, 10)
-                                            .padding(.vertical, 4)
-                                            .background(Color.brandPrimary.opacity(0.12))
-                                            .clipShape(Capsule())
-                                        Image(systemName: "chevron.right")
-                                            .font(.caption.weight(.semibold))
-                                            .foregroundColor(.brandPrimary.opacity(0.5))
-                                    }
-                                    .foregroundColor(.brandPrimary)
-                                    .padding(14)
-                                    .background(Color.cardSurfaceMuted)
-                                    .clipShape(RoundedRectangle(cornerRadius: 14))
-                                }
-                                .buttonStyle(.plain)
-                            }
-                        }
-                        .padding()
-                        .background(Color.cardSurfaceMuted)
-                        .clipShape(RoundedRectangle(cornerRadius: 24))
-                        .padding(.horizontal)
-
-                        @Bindable var bindableVM = vm
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Say it here, not to them")
-                                .font(.headline)
-                                .foregroundColor(.brandPrimary)
-                            Text("Say what you’d send them, without sending it. Nothing here is saved or shared. I’m holding the space.")
-                                .font(.caption)
-                                .foregroundColor(.brandPrimary.opacity(0.7))
-
-                            TextEditor(text: $bindableVM.ventText)
-                                .frame(height: 120)
-                                .padding(8)
-                                .background(Color.cardSurfaceSoft)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-                                                                .scrollContentBackground(.hidden)
-
-                            if !bindableVM.ventText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                                HStack {
-                                    Spacer()
-
-                                    Button(action: {
-                                        vm.clearVentText()
-                                    }) {
-                                        HStack(spacing: 8) {
-                                            Image(systemName: "flame.fill")
-                                            Text("Let it go")
-                                        }
-                                        .font(.subheadline.weight(.semibold))
-                                        .foregroundColor(.white)
-                                        .padding(.horizontal, 16)
-                                        .padding(.vertical, 10)
-                                        .background(
-                                            LinearGradient(
-                                                colors: [Color.brandPrimary, Color.sageGreen],
-                                                startPoint: .leading,
-                                                endPoint: .trailing
-                                            )
-                                        )
-                                        .clipShape(Capsule())
-                                        .shadow(color: Color.brandPrimary.opacity(0.18), radius: 8, x: 0, y: 4)
-                                    }
-                                    .buttonStyle(.plain)
-                                }
-                            }
-                        }
-                        .padding()
-                        .background(Color.cardSurfaceMuted)
-                        .clipShape(RoundedRectangle(cornerRadius: 24))
-                        .padding(.horizontal)
-
-                        VStack(spacing: 12) {
-                            Text("Need a real person right now?")
-                                .font(.headline)
-                                .foregroundColor(.brandPrimary)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-
-                            Button(action: {
-                                showContactPicker = true
-                            }) {
-                                HStack(spacing: 16) {
-                                    ZStack {
-                                        Circle()
-                                            .fill(Color.sageGreen.opacity(0.15))
-                                            .frame(width: 44, height: 44)
-                                        Image(systemName: "person.fill")
-                                            .foregroundColor(.brandPrimary)
-                                            .font(.system(size: 20, weight: .semibold))
-                                    }
-
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text("Call someone you trust")
-                                            .font(.headline)
-                                            .foregroundColor(.textOnPrimary)
-                                        Text("Choose someone from your contacts")
-                                            .font(.subheadline)
-                                            .foregroundColor(.gray)
-                                    }
-
-                                    Spacer()
-
-                                    Image(systemName: "chevron.right")
-                                        .foregroundColor(Color.brandPrimary.opacity(0.5))
-                                }
-                                .padding()
-                                .background(Color.fieldSurface)
-                                .clipShape(RoundedRectangle(cornerRadius: 16))
-                            }
-                            .buttonStyle(.plain)
-
-                            Text("If talking to a friend isn’t enough, or you feel unsafe, these lines are here for you too.")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                                .padding(.top, 4)
-
-                            Button {
-                                UIApplication.shared.open(CrisisResources.findHelplineURL)
-                            } label: {
-                                crisisResourceRow(
-                                    icon: "globe",
-                                    iconColor: .red.opacity(0.80),
-                                    iconBackground: Color.red.opacity(0.12),
-                                    title: "Find a helpline near you",
-                                    subtitle: "Local crisis lines worldwide · IASP",
-                                    chevronColor: Color.red.opacity(0.40),
-                                    background: Color.red.opacity(0.06),
-                                    stroke: Color.red.opacity(0.15)
-                                )
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel("Find a helpline near you")
-
-                            if let emergencyURL = CrisisResources.emergencyTelURL {
-                                Button {
-                                    UIApplication.shared.open(emergencyURL)
-                                } label: {
-                                    crisisResourceRow(
-                                        icon: "cross.circle.fill",
-                                        iconColor: .red.opacity(0.80),
-                                        iconBackground: Color.red.opacity(0.12),
-                                        title: "Call \(CrisisResources.emergencyNumber)",
-                                        subtitle: "Emergency services in your region",
-                                        chevronColor: Color.red.opacity(0.40),
-                                        background: Color.red.opacity(0.06),
-                                        stroke: Color.red.opacity(0.15)
-                                    )
-                                }
-                                .buttonStyle(.plain)
-                                .accessibilityLabel("Call emergency services \(CrisisResources.emergencyNumber)")
-                            }
-
-                            if CrisisResources.isUSRegion, let callURL = CrisisResources.usLifelineCallURL {
-                                Button {
-                                    UIApplication.shared.open(callURL)
-                                } label: {
-                                    crisisResourceRow(
-                                        icon: "phone.fill",
-                                        iconColor: .red.opacity(0.80),
-                                        iconBackground: Color.red.opacity(0.12),
-                                        title: "Call or text 988",
-                                        subtitle: "Suicide & Crisis Lifeline · United States",
-                                        chevronColor: Color.red.opacity(0.40),
-                                        background: Color.red.opacity(0.06),
-                                        stroke: Color.red.opacity(0.15)
-                                    )
-                                }
-                                .buttonStyle(.plain)
-                                .accessibilityLabel("Call 988 Suicide and Crisis Lifeline")
-                            }
-                        }
-                        .padding()
-                        .background(Color.cardSurfaceMuted)
-                        .clipShape(RoundedRectangle(cornerRadius: 24))
-                        .padding(.horizontal)
-
-                        Spacer(minLength: 40)
+                        Spacer(minLength: 24)
                     }
                 }
                 .scrollDismissesKeyboard(.interactively)
+                .onAppear {
+                    scrollToCalmFocus(proxy)
+                }
+                .onChange(of: navigator.calmFocus) { _, _ in
+                    scrollToCalmFocus(proxy)
+                }
+                }
             }
             .navigationBarHidden(true)
             .onAppear {
@@ -380,14 +101,326 @@ struct CalmSpaceView: View {
             .sheet(isPresented: $showContactPicker) {
                 ContactPicker()
             }
-            .fullScreenCover(isPresented: $showUrgeWave) {
-                UrgeWaveView()
-            }
             .onAppear {
                 if ProcessInfo.processInfo.arguments.contains("-open-urge-wave") {
-                    showUrgeWave = true
+                    navigator.openUrgeWave()
                 }
             }
+        }
+    }
+
+    private var rideTheWaveCard: some View {
+        calmCard {
+            Text("2 quiet minutes")
+                .font(.headline)
+                .foregroundColor(.brandPrimary)
+
+            Text("For when the feeling spikes. Sit with it until it softens. No texting decisions here.")
+                .font(.subheadline)
+                .foregroundColor(.brandPrimary.opacity(0.55))
+                .fixedSize(horizontal: false, vertical: true)
+
+            Button {
+                navigator.openUrgeWave()
+            } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: "water.waves")
+                        .font(.title3)
+                    Text("Start the 2 minutes")
+                        .font(.subheadline.weight(.semibold))
+                    Spacer()
+                    Image(systemName: "arrow.right")
+                        .font(.footnote.weight(.bold))
+                }
+                .foregroundStyle(Color.brandPrimary)
+                .padding(14)
+                .background(Color.fieldSurface)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("2 quiet minutes. Sit with the feeling until it softens.")
+        }
+    }
+
+    private var callAFriendCard: some View {
+        calmCard {
+            Text("Call a friend")
+                .font(.headline)
+                .foregroundColor(.brandPrimary)
+
+            Text("A real voice can help when this feels too big alone.")
+                .font(.subheadline)
+                .foregroundColor(.brandPrimary.opacity(0.55))
+                .fixedSize(horizontal: false, vertical: true)
+
+            Button {
+                showContactPicker = true
+            } label: {
+                HStack(spacing: 16) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.sageGreen.opacity(0.15))
+                            .frame(width: 44, height: 44)
+                        Image(systemName: "phone.fill")
+                            .foregroundColor(.brandPrimary)
+                            .font(.system(size: 18, weight: .semibold))
+                    }
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Pick someone you trust")
+                            .font(.headline)
+                            .foregroundColor(.textOnPrimary)
+                        Text("Opens your contacts")
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                    }
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(Color.brandPrimary.opacity(0.5))
+                }
+                .padding()
+                .background(Color.fieldSurface)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Call a friend. Pick someone you trust.")
+        }
+    }
+
+    private var breatheCard: some View {
+        calmCard {
+            Text("Breathe with me")
+                .font(.headline)
+                .foregroundColor(.brandPrimary)
+
+            Text("Slow breaths can quiet the rush in your chest.")
+                .font(.subheadline)
+                .foregroundColor(.brandPrimary.opacity(0.55))
+                .fixedSize(horizontal: false, vertical: true)
+
+            VStack(spacing: 12) {
+                BreathingCircleView()
+                    .id(CalmSpaceFocus.breathe)
+                Button(action: { vm.toggleMusic() }) {
+                    HStack {
+                        Image(systemName: vm.isPlayingMusic ? "speaker.wave.3.fill" : "speaker.slash.fill")
+                        Text(vm.isPlayingMusic ? "Sound is on" : "Play a sound")
+                    }
+                    .font(.footnote.bold())
+                    .foregroundColor(.brandPrimary)
+                }
+            }
+        }
+    }
+
+    private var groundCard: some View {
+        calmCard {
+            Text("Come back to your senses")
+                .font(.headline)
+                .foregroundColor(.brandPrimary)
+
+            Text("Look around and name what is here with you. It helps when your mind is far away.")
+                .font(.subheadline)
+                .foregroundColor(.brandPrimary.opacity(0.55))
+                .fixedSize(horizontal: false, vertical: true)
+
+            VStack(alignment: .leading, spacing: 8) {
+                GroundingRow(number: "5", text: "Things your eyes can find", icon: "eye.fill")
+                GroundingRow(number: "4", text: "Things your hands can feel", icon: "hand.tap.fill")
+                GroundingRow(number: "3", text: "Sounds around you", icon: "ear.fill")
+                GroundingRow(number: "2", text: "Scents you notice", icon: "nose.fill")
+                GroundingRow(number: "1", text: "Something you can taste", icon: "mouth.fill")
+            }
+            .id(CalmSpaceFocus.ground)
+        }
+    }
+
+    private var drawCard: some View {
+        calmCard {
+            Text("Scribble for a minute")
+                .font(.headline)
+                .foregroundColor(.brandPrimary)
+
+            Text("No art needed. Just put something on the page.")
+                .font(.subheadline)
+                .foregroundColor(.brandPrimary.opacity(0.55))
+                .fixedSize(horizontal: false, vertical: true)
+
+            VStack(alignment: .leading, spacing: 12) {
+                Button(action: {
+                    vm.clearCanvas()
+                    showDrawingPad = true
+                }) {
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(Color.cardSurfaceSoft)
+                        .frame(height: 96)
+                        .overlay(
+                            VStack(spacing: 8) {
+                                Image(systemName: "scribble.variable")
+                                    .font(.title2)
+                                    .foregroundColor(.brandPrimary.opacity(0.75))
+                                Text("Open a blank page")
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundColor(.brandPrimary)
+                            }
+                        )
+                }
+                .buttonStyle(.plain)
+
+                if vm.saveDrawingsEnabled {
+                    Button(action: {
+                        showDrawingFolder = true
+                    }) {
+                        HStack {
+                            Label("My drawings", systemImage: "folder.fill")
+                                .font(.subheadline.weight(.semibold))
+                            Spacer()
+                            Text("\(vm.savedDrawings.count)")
+                                .font(.caption.weight(.bold))
+                                .foregroundColor(.brandPrimary)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 4)
+                                .background(Color.brandPrimary.opacity(0.12))
+                                .clipShape(Capsule())
+                            Image(systemName: "chevron.right")
+                                .font(.caption.weight(.semibold))
+                                .foregroundColor(.brandPrimary.opacity(0.5))
+                        }
+                        .foregroundColor(.brandPrimary)
+                        .padding(14)
+                        .background(Color.white.opacity(0.55))
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .id(CalmSpaceFocus.draw)
+        }
+    }
+
+    private var writeInJournalCard: some View {
+        calmCard {
+            Text("Need to write it out?")
+                .font(.headline)
+                .foregroundColor(.brandPrimary)
+
+            Text("Journal is where words get saved. Come back here when you need calm tools.")
+                .font(.subheadline)
+                .foregroundColor(.brandPrimary.opacity(0.55))
+                .fixedSize(horizontal: false, vertical: true)
+
+            Button {
+                navigator.openJournal()
+            } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: "book.pages.fill")
+                        .font(.title3)
+                    Text("Open Journal")
+                        .font(.subheadline.weight(.semibold))
+                    Spacer()
+                    Image(systemName: "arrow.right")
+                        .font(.footnote.weight(.bold))
+                }
+                .foregroundStyle(Color.brandPrimary)
+                .padding(14)
+                .background(Color.fieldSurface)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Open Journal to write it out")
+        }
+    }
+
+    private var peopleCard: some View {
+        calmCard {
+            Text("If you need more help")
+                .font(.headline)
+                .foregroundColor(.brandPrimary)
+
+            Text("If a friend isn’t enough, or you feel unsafe, these lines are here.")
+                .font(.subheadline)
+                .foregroundColor(.brandPrimary.opacity(0.55))
+                .fixedSize(horizontal: false, vertical: true)
+
+            VStack(spacing: 12) {
+                Button {
+                    UIApplication.shared.open(CrisisResources.findHelplineURL)
+                } label: {
+                    crisisResourceRow(
+                        icon: "globe",
+                        iconColor: .red.opacity(0.80),
+                        iconBackground: Color.red.opacity(0.12),
+                        title: "Find a helpline near you",
+                        subtitle: "Local crisis lines worldwide, IASP",
+                        chevronColor: Color.red.opacity(0.40),
+                        background: Color.red.opacity(0.06),
+                        stroke: Color.red.opacity(0.15)
+                    )
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Find a helpline near you")
+
+                if let emergencyURL = CrisisResources.emergencyTelURL {
+                    Button {
+                        UIApplication.shared.open(emergencyURL)
+                    } label: {
+                        crisisResourceRow(
+                            icon: "cross.circle.fill",
+                            iconColor: .red.opacity(0.80),
+                            iconBackground: Color.red.opacity(0.12),
+                            title: "Call \(CrisisResources.emergencyNumber)",
+                            subtitle: "Emergency services in your region",
+                            chevronColor: Color.red.opacity(0.40),
+                            background: Color.red.opacity(0.06),
+                            stroke: Color.red.opacity(0.15)
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Call emergency services \(CrisisResources.emergencyNumber)")
+                }
+
+                if CrisisResources.isUSRegion, let callURL = CrisisResources.usLifelineCallURL {
+                    Button {
+                        UIApplication.shared.open(callURL)
+                    } label: {
+                        crisisResourceRow(
+                            icon: "phone.fill",
+                            iconColor: .red.opacity(0.80),
+                            iconBackground: Color.red.opacity(0.12),
+                            title: "Call or text 988",
+                            subtitle: "Suicide and Crisis Lifeline, United States",
+                            chevronColor: Color.red.opacity(0.40),
+                            background: Color.red.opacity(0.06),
+                            stroke: Color.red.opacity(0.15)
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Call 988 Suicide and Crisis Lifeline")
+                }
+            }
+        }
+    }
+
+    private func calmCard<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            content()
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.cardSurfaceMuted)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .padding(.horizontal)
+    }
+
+    private func scrollToCalmFocus(_ proxy: ScrollViewProxy) {
+        guard let focus = navigator.calmFocus else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            withAnimation(.easeOut(duration: 0.25)) {
+                proxy.scrollTo(focus, anchor: .center)
+            }
+            navigator.calmFocus = nil
         }
     }
 
@@ -454,7 +487,7 @@ private struct DrawingPadSheet: View {
                     .ignoresSafeArea()
 
                 VStack(spacing: 16) {
-                    Text("Draw what you’re feeling")
+                    Text("Draw whatever is here")
                         .font(.headline)
                         .foregroundColor(.brandPrimary)
 
@@ -510,13 +543,28 @@ private struct DrawingPadSheet: View {
                         }
                     }
 
-                    Text(vm.saveDrawingsEnabled
-                         ? "Clearing only wipes this page. Saved drawings stay in My drawings."
-                         : "This page is temporary. To keep your drawings: Home → profile icon → Settings → turn on Save drawings.")
-                        .font(.caption)
-                        .foregroundColor(.brandPrimary.opacity(0.7))
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal)
+                    Toggle(isOn: Binding(
+                        get: { vm.saveDrawingsEnabled },
+                        set: { vm.saveDrawingsEnabled = $0 }
+                    )) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Save drawings")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundColor(.brandPrimary)
+                            Text(vm.saveDrawingsEnabled
+                                 ? "Turned on. Use Keep this drawing to save to My drawings."
+                                 : "Turn on to keep drawings instead of only drawing for the moment.")
+                                .font(.caption)
+                                .foregroundColor(.brandPrimary.opacity(0.65))
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    .tint(Color.brandPrimary)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 12)
+                    .background(Color.cardSurfaceMuted)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .padding(.horizontal)
                 }
                 .padding(.top, 12)
             }
@@ -574,7 +622,7 @@ private struct SavedDrawingsFolderSheet: View {
                         Text("No saved drawings yet. That’s okay")
                             .font(.headline)
                             .foregroundColor(.brandPrimary)
-                        Text("Draw something, keep it, and it will gather here.")
+                        Text("Draw something, keep it, and it’ll show up here.")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)

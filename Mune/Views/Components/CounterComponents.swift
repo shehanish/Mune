@@ -85,67 +85,6 @@ enum HealingDaysTracker {
     }
 }
 
-struct HealingDaysHomeCard: View {
-    let isActive: Bool
-    let daysElapsed: Int
-    let goal: String
-    let onTap: () -> Void
-
-    private var subtitle: String {
-        if isActive {
-            if goal.isEmpty || goal.contains("Unlimited") || goal.contains("Not Decided") {
-                return daysElapsed == 1 ? "1 gentle day. Tap when you’d like to look" : "\(daysElapsed) gentle days. Tap when you’d like to look"
-            }
-            return "Goal: \(goal). Tap when you’d like to look"
-        }
-        return "Track your days with kindness when you’re ready"
-    }
-
-    var body: some View {
-        Button(action: onTap) {
-            HStack(spacing: 14) {
-                Image(systemName: "leaf.fill")
-                    .font(.title2)
-                    .foregroundStyle(Color.brandPrimary)
-                    .frame(width: 44, height: 44)
-                    .background(Color.brandPrimary.opacity(0.12))
-                    .clipShape(Circle())
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Healing Days")
-                        .font(.headline)
-                        .foregroundStyle(Color.brandPrimary)
-
-                    Text(subtitle)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.leading)
-                }
-
-                Spacer()
-
-                if isActive {
-                    Text("\(daysElapsed)")
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundStyle(Color.sageGreen)
-                        .monospacedDigit()
-                }
-
-                Image(systemName: "chevron.right")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(Color.brandPrimary.opacity(0.45))
-            }
-            .padding(18)
-            .background(Color.cardGradient)
-            .clipShape(RoundedRectangle(cornerRadius: 26))
-            .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 4)
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(isActive ? "Healing days, \(daysElapsed) days" : "Set up healing days")
-        .accessibilityHint("Opens healing days")
-    }
-}
-
 struct HealingDaysSetupSheet: View {
     @Binding var selectedDate: Date
     @Binding var selectedPeriod: String?
@@ -168,20 +107,26 @@ struct HealingDaysSetupSheet: View {
                 
                 ScrollView {
                     VStack(spacing: 25) {
-                        Text("Set up healing days")
+                        Text("Start your day count")
                             .font(.title2)
                             .fontWeight(.bold)
                             .foregroundStyle(Color.textOnPrimary)
                             .padding(.top, 20)
 
+                        Text("Set the last time you contacted them. The counter starts from there.")
+                            .font(.subheadline)
+                            .multilineTextAlignment(.center)
+                            .foregroundStyle(Color.textOnPrimary.opacity(0.75))
+                            .padding(.horizontal, 24)
+
                         VStack(alignment: .leading, spacing: 10) {
-                            Text("When did you begin?")
+                            Text("When was the last contact?")
                                 .font(.subheadline)
                                 .foregroundStyle(Color.textOnPrimary.opacity(0.8))
                                 .padding(.horizontal, 20)
 
                             DatePicker(
-                                "Start Date & Time",
+                                "Last contact",
                                 selection: $selectedDate,
                                 displayedComponents: [.date, .hourAndMinute]
                             )
@@ -193,8 +138,8 @@ struct HealingDaysSetupSheet: View {
                         }
 
                         DropDownView(
-                            title: "How long feels right for now?",
-                            prompt: "Choose a length",
+                            title: "Optional goal",
+                            prompt: "How long do you want to aim for?",
                             options: periodOptions,
                             selection: $selectedPeriod
                         )
@@ -279,11 +224,18 @@ struct ActiveTrackerView: View {
     
     var body: some View {
         VStack(spacing: 40) {
-            Text("Your healing days")
-                .font(.title2)
-                .fontWeight(.bold)
-                .foregroundColor(Color.textOnPrimary)
-            
+            VStack(spacing: 8) {
+                Text("Healing days")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(Color.textOnPrimary)
+
+                Text("Days since you last contacted them")
+                    .font(.subheadline)
+                    .foregroundColor(Color.textOnPrimary.opacity(0.7))
+                    .multilineTextAlignment(.center)
+            }
+
             ZStack {
                 Circle()
                     .stroke(Color.sageGreen.opacity(0.4), lineWidth: 20)
@@ -302,7 +254,7 @@ struct ActiveTrackerView: View {
                         .font(.system(size: 60, weight: .bold, design: .rounded))
                         .foregroundColor(Color.brandPrimary)
                     
-                    Text("Days of gentle distance")
+                    Text(daysElapsed == 1 ? "Day without contact" : "Days without contact")
                         .font(.headline)
                         .foregroundColor(Color.brandPrimary.opacity(0.8))
                         .multilineTextAlignment(.center)
@@ -332,7 +284,7 @@ struct ActiveTrackerView: View {
             .background(Color.sageGreen.opacity(0.2))
             .clipShape(RoundedRectangle(cornerRadius: 16))
             
-            Button("Reset and start fresh") {
+            Button("Reset day count") {
                 onReset()
             }
             .font(.headline)

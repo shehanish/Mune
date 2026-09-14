@@ -15,8 +15,9 @@ final class HomeViewModel {
     //Text note user can type
     var notesText: String = ""
     //AI Strings
-    var todayInsightText: String? = "You’re doing your best. Healing isn’t a straight line. One soft step today is enough."
+    var todayInsightText: String?
     var isGeneratingTodayInsight: Bool = false
+    var hasCheckedInToday: Bool = false
     
     private let moodRepo: any MoodRepository
     private let aiService: any AIInsightService
@@ -27,6 +28,8 @@ final class HomeViewModel {
     // Ephemeral UI state
     var selectedMoods: Set<String> = []
     var isSavingCheckIn: Bool = false
+    var activeCrisisSignals: Set<CrisisSignal> = []
+    var crisisSupportMessage: String?
 
     // Weekly Home summary (kept lean for Track; extra fields feed chat context)
     var weeklyMoodCounts: [MoodCount] = []
@@ -38,11 +41,11 @@ final class HomeViewModel {
     var weeklyTrendBars: [WeeklyTrendBar] = []
     var latestCheckInText: String = "No check-ins yet. That’s okay."
     var weeklyTrackInsight: WeeklyTrackInsight = .empty
-
-    
+    var recoveryIntervention: RecoveryIntervention = .defaultCheckIn
 
     // Error state (repo or AI)
     var lastError: String?
+    private var lastHealingDaysCount: Int?
 
     init(
         moodRepo: any MoodRepository,
@@ -80,6 +83,11 @@ final class HomeViewModel {
         isSavingCheckIn = true
         defer { isSavingCheckIn = false }
 
+        let crisisSignals = CrisisSupportDetector.detect(in: trimmed)
+        let moodsJoined = applied.joined(separator: " ")
+        let moodSignals = CrisisSupportDetector.detect(in: moodsJoined)
+        let combinedSignals = crisisSignals.union(moodSignals)
+
         do {
             try await moodRepo.addMoodEntry(
                 userID: userID,
@@ -94,7 +102,18 @@ final class HomeViewModel {
             notesText = ""
             lastError = nil
 
+            if combinedSignals.isEmpty {
+                activeCrisisSignals = []
+                crisisSupportMessage = nil
+            } else {
+                activeCrisisSignals = combinedSignals
+                crisisSupportMessage = combinedSignals.contains(.harmToOthers)
+                    ? "I’m glad you said something. If you or someone else might be in danger, please get help now."
+                    : "I’m glad you said something. You don’t have to hold this alone. Please reach out for help now."
+            }
+
             await loadHomeSummary()
+            await refreshRecoveryEngine(healingDaysCount: lastHealingDaysCount)
             await generateInsightForToday()
         } catch {
             MuneLog.debug("[HomeViewModel] apply failed: \(error)")
@@ -137,6 +156,9 @@ final class HomeViewModel {
                 helpfulPattern: weeklyHelpfulPatternText,
                 warning: weeklyWarningText
             )
+
+            let startOfToday = calendar.startOfDay(for: end)
+            hasCheckedInToday = sortedEntries.contains { $0.timestamp >= startOfToday }
 
             if let latest = sortedEntries.last {
                 let moodText = latest.moods.isEmpty ? "You hadn’t named a feeling yet" : latest.moods.joined(separator: ", ")
@@ -189,7 +211,7 @@ final class HomeViewModel {
 
         if let warning {
             return WeeklyTrackInsight(
-                message: "\(warning) If the urge to reach out gets loud, come into Calm Space with me. We’ll ride it out together.",
+                message: "\(warning) Come take a slow breath with me, then one small kind thing for yourself.",
                 actionLabel: "Come to Calm Space",
                 destination: .calmSpace,
                 isHeavy: true
@@ -205,10 +227,9 @@ final class HomeViewModel {
             )
         }
 
-        let heavyMoods: Set<String> = ["Sad", "Angry", "Anxious", "Lonely", "Empty", "Tired"]
-        if let top = moodCounts.first, heavyMoods.contains(top.mood) {
+        if let top = moodCounts.first, RecoveryMood.isHeavy(top.mood) {
             return WeeklyTrackInsight(
-                message: "\(top.mood) visited most this week. Writing it out or talking with me can soften the weight.",
+                message: "\(top.mood) showed up most this week. Noticing it is a start. Writing something down, or talking with me, can help you figure out what’s next.",
                 actionLabel: "Open your journal",
                 destination: .journal,
                 isHeavy: false
@@ -268,25 +289,42 @@ final class HomeViewModel {
         let averageScore = Double(scores.reduce(0, +)) / Double(scores.count)
 
         if averageScore <= -0.35 {
-            return "This week has felt especially heavy, and you’re still here."
+            return "This week asked a lot of you, and you still showed up."
         } else if averageScore <= -0.15 {
-            return "Some of this week has felt tender and heavy."
+            return "Some days were tender. You’re still here, and that counts."
         } else {
             return nil
         }
     }
 
-    private func moodWeight(for mood: String) -> Int {
-        switch mood.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
-        case "calm", "hopeful":
-            return 1
-        case "okay":
-            return 0
-        case "sad", "angry", "anxious", "lonely", "empty", "tired":
-            return -1
-        default:
-            return 0
+    func refreshRecoveryEngine(healingDaysCount: Int?, now: Date = .now) async {
+        lastHealingDaysCount = healingDaysCount
+
+        do {
+            let start = RecoverySignalBuilder.lookbackStart(from: now, calendar: calendar)
+            let entries = try await moodRepo.fetchMoodEntries(userID: userID, from: start, to: now)
+            let signals = RecoverySignalBuilder.make(
+                now: now,
+                calendar: calendar,
+                entries: entries,
+                healingDaysCount: healingDaysCount
+            )
+            recoveryIntervention = RecoveryEngine.intervention(from: signals)
+        } catch {
+            MuneLog.debug("[HomeViewModel] refreshRecoveryEngine failed: \(error)")
+            recoveryIntervention = RecoveryEngine.intervention(
+                from: RecoverySignalBuilder.make(
+                    now: now,
+                    calendar: calendar,
+                    entries: [],
+                    healingDaysCount: healingDaysCount
+                )
+            )
         }
+    }
+
+    private func moodWeight(for mood: String) -> Int {
+        RecoveryMood.weight(for: mood)
     }
 
     private func shortDayLabel(for date: Date) -> String {
@@ -297,12 +335,12 @@ final class HomeViewModel {
         return formatter.string(from: date)
     }
 
-    /// Generates a 1–3 sentence insight based only on mood entries logged today.
+    /// Generates a 1 to 3 sentence insight based only on mood entries logged today.
     func generateInsightForToday() async {
         guard !isGeneratingTodayInsight else { return }
 
         isGeneratingTodayInsight = true
-        todayInsightText = "I’m right here… just gathering a thought for you."   // show text immediately
+        todayInsightText = "One sec… thinking this through with you."   // show text immediately
         lastError = nil
 
         // Artificial pause so the user sees the loading state
@@ -321,7 +359,7 @@ final class HomeViewModel {
             )
 
             guard let latestEntry = entries.last else {
-                todayInsightText = "If today feels heavy, try one gentle kindness: a sip of water, a short walk, or a message to someone safe."
+                todayInsightText = "Try something small: water, a short walk, or a message to someone you trust."
                 return
             }
 
@@ -343,7 +381,7 @@ final class HomeViewModel {
             todayInsightText = try await aiService.generateMoodInsight(from: input, userName: userName)
         } catch {
             MuneLog.debug("[HomeViewModel] generateInsightForToday failed: \(error)")
-            lastError = friendlyErrorMessage(for: error, fallback: "I couldn’t gather a reflection just now. We can try again when you’re ready.")
+            lastError = friendlyErrorMessage(for: error, fallback: "I couldn’t put that into words just now. We can try again when you’re ready.")
             todayInsightText = "I hit a small snag reflecting with you. Let’s try again in a moment."
         }
     }
