@@ -1,0 +1,218 @@
+Reply for the Guideline 2.1 information request (new app submission, limited
+review history).
+
+Paste the full items 2-6 below into Resolution Center, and attach the screen
+recording. The Notes field of App Review Information only holds 4000
+characters, so paste the condensed block at the very bottom of this file there
+instead.
+
+================================================================================
+1. SCREEN RECORDING
+================================================================================
+Recorded on a physical iPhone running the latest iOS. See attached file.
+
+Notes on the flows Apple asked about:
+- Account registration / login / deletion: Mune has no accounts. There is no
+  registration, no login, no password, and no server-side profile. Onboarding
+  only asks for a nickname, which is stored on the device. The recording shows
+  creating a local profile and deleting it, which erases everything that
+  profile saved on the device.
+- User-generated content: journal entries, check-ins, reality checks, rebuild
+  steps, recovery snapshots, and drawings are private to the device. Mune has
+  no feed, no sharing between users, no discovery, and no way for one person to
+  see another person's content, so content reporting and blocking mechanisms do
+  not apply. The recording shows where this content is written and stored.
+- Paid content or features: there are none. No in-app purchases, no
+  subscription, no paywall. Every feature is available immediately.
+
+================================================================================
+2. PURPOSE AND TARGET AUDIENCE
+================================================================================
+Mune is a private companion for the days after a breakup. It is for adults and
+older teens (rated 13+) who have recently ended a relationship and are dealing
+with the hours that hit hardest: 2am, an empty evening, or the moment they are
+about to contact an ex they have decided not to contact.
+
+The problem it solves: in that moment a person wants to act immediately, and
+acting usually makes the next day worse. Most apps in this space count the days
+since last contact and reward a streak, which turns a hard night into a number
+the person can fail.
+
+Mune's value is that it intervenes in the moment instead of measuring it. One
+tap opens a guided pause that walks the person through the urge, lets them write
+the message they will not send, and hands back one small next step. Around that
+sit a two-minute urge-surfing timer paced by breathing, a structured thought
+challenge, small daily rebuilding commitments, and a self-rated recovery trend.
+
+Mune is support, not therapy, medical care, or a crisis service, and it says so
+in the app, in the Chat header, and in the Terms of Use.
+
+================================================================================
+3. SETUP AND ACCESS INSTRUCTIONS
+================================================================================
+No credentials are required. There is no demo account because there are no
+accounts of any kind. Nothing is gated, region-locked, or behind a purchase.
+
+To set up: launch the app, tap "Get started", type any nickname, optionally pick
+a healing focus, and continue. Everything is then available.
+
+To reach the main features:
+- Calm Space tab, top button "I want to text them" - the guided urge pause.
+- Calm Space tab, "2 quiet minutes", then "Start the 2 minutes" - timed
+  urge-surfing exercise paced by breathing.
+- Calm Space tab, also contains paced breathing, 5-4-3-2-1 grounding, a drawing
+  pad, call-a-friend through the system contact picker, and crisis links.
+- Journal tab, prompt row, "Reality Check" - name a thought, test it, write a
+  fairer answer. The same tab has writing prompts and "Speak it out" dictation.
+- Home tab, check-in section - pick one or more feelings, optionally add a note,
+  and save to receive an insight.
+- Home tab, scroll down to "Rebuild yourself" - small daily commitments across
+  body, mind, and people.
+- Home tab, "Recovery progress" - self-ratings for pain, intrusive thoughts,
+  contact urge, sleep, loneliness, and sense of self, shown as a trend.
+- Home tab, "Healing days" - the optional day counter, off by default.
+- Chat tab - breakup-aware support. Starter chips are provided, for example
+  "I want to text them".
+- Settings, "Your data" - export or delete everything stored on the device.
+- Profile - change nickname, photo, and healing focus.
+
+================================================================================
+4. EXTERNAL SERVICES, TOOLS, AND PLATFORMS
+================================================================================
+- OpenAI (chat completions API): generates the replies in the Chat tab and the
+  short insight shown after a check-in. This is the only third-party service
+  that receives user text.
+- Cloudflare Workers: hosts our own proxy at
+  https://mune-openai-proxy.shehani1207.workers.dev. The proxy holds the OpenAI
+  credential so no API key ships in the app. It forwards the request and returns
+  the reply. We do not operate any other backend and we store nothing.
+- Apple frameworks only, for everything else: SwiftUI and SwiftData (local
+  storage), Speech (dictation, configured for on-device recognition so audio
+  never leaves the phone), Contacts (the system contact picker for call-a-friend),
+  MessageUI (the user's own Mail composer for optional feedback), AVFoundation
+  (audio playback), and UserNotifications (an optional local daily reminder).
+- Pixabay: the Calm Space soundscape is a bundled audio asset licensed under the
+  Pixabay Content License, which permits commercial use in apps. This is an
+  asset, not a runtime service. Provenance is documented in
+  THIRD_PARTY_AUDIO.md in our repository.
+- GitHub Pages: hosts our Privacy Policy and Terms of Use web pages only.
+
+There is no authentication provider, no payment processor, no advertising
+network, no analytics or crash-reporting SDK, and no tracking identifiers. Mune
+contains no third-party source code or app template; it is written by hand in
+SwiftUI and SwiftData.
+
+================================================================================
+5. REGIONAL DIFFERENCES
+================================================================================
+All features work identically in every region. Nothing is geo-restricted, and
+no content differs by country except the crisis resources, which are localised
+deliberately for user safety:
+
+- The local emergency number is chosen from the device region. We only show a
+  number for regions where we are confident of it (North America and much of the
+  Caribbean, UK, EU and EEA, Australia and New Zealand, India, Japan, Korea,
+  China/Hong Kong/Macau, Brazil, Mexico, South Africa, the Gulf states, and
+  several others).
+- Where we are not confident of the local number, we deliberately show no number
+  and instead link to the IASP worldwide helpline directory, so a user is never
+  given a wrong emergency number.
+- In the United States we additionally surface the 988 Suicide and Crisis
+  Lifeline for both call and text.
+
+One further environmental difference, not regional policy: the "Speak it out"
+dictation in Journal depends on iOS on-device speech recognition being available
+for the device language. Where it is not, the feature reports that it is
+unavailable and the person types instead.
+
+================================================================================
+6. REGULATED INDUSTRY AND PROTECTED THIRD-PARTY MATERIAL
+================================================================================
+Mune does not operate in a regulated industry. It is a wellness and lifestyle
+app. It is not a medical device, does not offer diagnosis or treatment, does not
+provide therapy or counselling by a licensed professional, and is not a crisis
+service. It reads no HealthKit data and holds no clinical records. These limits
+are stated in the app, in the Chat header ("Not therapy"), in Settings, and in
+the Terms of Use at https://shehanish.github.io/Mune/terms-of-use.html.
+
+Where distress signals appear in what a person writes, Mune does not attempt to
+treat anything. It surfaces official helpline links, including the IASP
+directory and, in the United States, the 988 Lifeline. That text is deliberately
+never forwarded to AI.
+
+The only protected third-party material in the app is the Calm Space audio,
+licensed from Pixabay under the Pixabay Content License, which expressly permits
+commercial use in applications and requires no attribution. Documentation of the
+source, the original filename, and the licence is kept in THIRD_PARTY_AUDIO.md
+and can be supplied on request. All other assets, illustrations, written
+content, and source code are our own original work.
+
+================================================================================
+CONDENSED VERSION FOR THE APP REVIEW INFORMATION NOTES FIELD (under 4000 chars)
+================================================================================
+PURPOSE AND AUDIENCE
+Mune is a private companion for the days after a breakup, for adults and older
+teens (13+). It is built around one moment: the urge to contact an ex. Most apps
+in this space count days since last contact and reward a streak, which turns a
+hard night into a number you can fail. Mune intervenes in the moment instead.
+One tap opens a guided pause that walks through the urge, lets the person write
+the message they will not send, and returns one small next step. It is support,
+not therapy, medical care, or a crisis service, and the app says so.
+
+ACCESS
+No accounts, no login, no password, no demo credentials needed. No in-app
+purchases, subscription, or paywall. Nothing is gated or region-locked. Launch,
+tap "Get started", type any nickname, and everything is available.
+
+WHERE THE MAIN FEATURES ARE
+- Calm Space > "I want to text them": the guided urge pause.
+- Calm Space > "2 quiet minutes": timed urge-surfing paced by breathing.
+- Calm Space also has breathing, 5-4-3-2-1 grounding, a drawing pad,
+  call-a-friend via the system contact picker, and crisis links.
+- Journal > prompt row > "Reality Check": name a thought, test it, write a
+  fairer answer. Same tab has prompts and "Speak it out" dictation.
+- Home > check-in: pick feelings, add an optional note, save for an insight.
+- Home > "Rebuild yourself": small daily commitments for body, mind, people.
+- Home > "Recovery progress": self-rated trend across pain, intrusive thoughts,
+  contact urge, sleep, loneliness, and sense of self.
+- Home > "Healing days": the optional day counter, off by default.
+- Chat: breakup-aware support, with starter chips.
+- Settings > "Your data": export or delete everything held on the device.
+
+USER-GENERATED CONTENT
+Journal entries, check-ins, reality checks, rebuild steps, recovery snapshots,
+and drawings stay on the device. There is no feed, no sharing between users, no
+discovery, and no way to see anyone else's content, so content reporting and
+blocking do not apply.
+
+EXTERNAL SERVICES
+- OpenAI chat completions: generates Chat replies and check-in insights. The
+  only third party that receives user text.
+- Cloudflare Workers: our own proxy at
+  https://mune-openai-proxy.shehani1207.workers.dev, which holds the OpenAI
+  credential so no key ships in the app. We run no other backend and store
+  nothing.
+- Apple frameworks otherwise: SwiftUI, SwiftData, Speech (on-device dictation,
+  audio never leaves the phone), Contacts, MessageUI, AVFoundation,
+  UserNotifications.
+- Pixabay: the Calm Space soundscape is a bundled asset under the Pixabay
+  Content License, which permits commercial use in apps.
+No authentication provider, payment processor, ad network, analytics or crash
+SDK, or tracking identifiers. No template or third-party source code.
+
+REGIONAL DIFFERENCES
+All features work identically everywhere. Only crisis resources localise: the
+local emergency number is selected from the device region, and where we are not
+confident of the correct number we show none and link to the IASP worldwide
+helpline directory instead, so nobody is given a wrong number. In the US we also
+surface the 988 Lifeline for call and text. Separately, Journal dictation
+depends on iOS on-device speech recognition being available for the device
+language; where it is not, the person types instead.
+
+REGULATED INDUSTRY AND THIRD-PARTY MATERIAL
+Not a regulated industry. Wellness and lifestyle only: no diagnosis, no
+treatment, no licensed counselling, no crisis service, and no HealthKit data.
+Where distress signals appear in what someone writes, Mune surfaces official
+helplines (IASP, and 988 in the US) and deliberately never forwards that text to
+AI. The only protected third-party material is the Pixabay-licensed audio;
+everything else is our own original work.
